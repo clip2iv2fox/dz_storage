@@ -11,14 +11,31 @@
     border-radius: 5px;
 }
 
+.platform-title{
+    font-weight: bold;
+}
+
 .platform-data {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
     width: 100%;
 }
 
 .platform-id {
-    font-size: calc(8px + 2vmin);
+    font-size: calc(2px + 2vmin);
     color: var(--grey);
+}
+
+.platform-bottom{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 10px;
+}
+
+.platform-del{
+    color: var(--secondary);
+    cursor: pointer;
+    font-size: 20px;
 }

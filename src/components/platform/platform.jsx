@@ -9,29 +9,29 @@ const Platform = ({id="", name="", value="", notification="", del}) => {
     return (
         <div className='platform'>
             <div className='platform-data'>
-                <div>
+                <div className='platform-title'>
                     {name}
                 </div>
                 <div>
                     мест: {value}
-                    <Button onClick={() => (
-                        setOpen(true)
-                    )} type={"danger"}>
-                        <i className="fa fa-remove" style={{color: "white"}}></i>
-                    </Button>
                 </div>
             </div>
-            <div className='platform-id'>
-                ID: {id}
+            <div className='platform-data'>
+                <div className='platform-id'>
+                    ID: {id}
+                </div>
+                <div>
+                    <i onClick={() => (setOpen(true))} className="fa fa-remove platform-del"></i>
+                </div>
             </div>
             <Modal isOpen={isOpen} onClose={() => setOpen(false)} title={"Удаление самолёта из бд"}>
-                <div className="accordion-bottom">
+                <div className="platform-bottom">
                     Удаление самолёта приведёт к удалению его данных и рейсов с бронями.
                 </div>
-                <div className="accordion-bottom">
+                <div className="platform-bottom">
                     <Button onClick={() => setOpen(false)}>отмена</Button>
                     <div className='notification'>{notification}</div>
-                    <Button onClick={() => del(id)} type={"danger"}>удалить</Button>
+                    <Button onClick={() => del()} type={"danger"}>удалить</Button>
                 </div>
             </Modal>
         </div>
