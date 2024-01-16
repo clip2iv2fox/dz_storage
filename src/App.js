@@ -19,7 +19,8 @@ function App() {
   const [isCase, setCase] = useState("");
   const [id, setID] = useState("")
   const [planeData, setPlaneData] = useState({ name: "", value: ""});
-  const [flightData, setFlightData] = useState({ number: "", date: "", target: "", planeId: ""});
+  const [flightData, setFlightData] = useState({ name: "", date: "", target: "", planeId: ""});
+  const [bookingData, setBookingData] = useState({name: "", surname: "", fatherName: "", flightId: ""})
 
   useEffect(() => {
     getPlanes();
@@ -27,15 +28,18 @@ function App() {
     if (!isOpen) {
       setNotification("")
       setPlaneData({name: "", value: "" })
-      setFlightData({number: "", target: "", date: "", planeId: ""})
+      setFlightData({name: "", target: "", date: "", planeId: ""})
+      setBookingData({name: "", surname: "", fatherName: "", flightId: ""})
       setID("")
     }
   }, [isOpen]);
+
 
   const getFlights = async () => {
     try {
       const response = await axios.get('http://localhost:5000/api/flight');
       setFlights(response.data);
+      console.log(response.data)
     } catch (error) {
       console.error('Ошибка:' + error);
     }
@@ -55,17 +59,14 @@ function App() {
       const response = await axios.delete(`http://localhost:5000/api/plane/${idPlane}`);
       setPlanes(response.data);
       setOpen(false);
+      getFlights();
       setNotification("");
     } catch (error) {
-      handleErrorResponse(error);
-    }
-  };
-
-  const handleErrorResponse = (error) => {
-    if (error.response && error.response.data && error.response.data.error) {
-      setNotification(error.response.data.error);
-    } else {
-      setNotification('Ошибка сервера');
+      if (error.response && error.response.data && error.response.data.error) {
+        setNotification(error.response.data.error);
+      } else {
+        setNotification('Ошибка сервера');
+      }
     }
   };
 
@@ -80,39 +81,121 @@ function App() {
         setPlaneData({name: "", value: "" })
         setOpen(false);
       } catch (error) {
-        handleErrorResponse(error);
+        if (error.response && error.response.data && error.response.data.error) {
+          setNotification(error.response.data.error);
+        } else {
+          setNotification('Ошибка сервера');
+        }
       }
     }
   };
 
   const createFlights = async () => {
-    if (flightData.number === "" || flightData.target === "" || flightData.date === "") {
+    if (flightData.name === "" || flightData.target === "" || flightData.date === "") {
       setNotification("Введены не все данные.");
     } else {
       try {
         const response = await axios.post('http://localhost:5000/api/flight', flightData);
         setFlights(response.data);
 
-        setFlightData({number: "", target: "", date: "", planeId: ""})
+        setFlightData({name: "", target: "", date: "", planeId: ""})
         setOpen(false);
       } catch (error) {
-        handleErrorResponse(error);
+        if (error.response && error.response.data && error.response.data.error) {
+          setNotification(error.response.data.error);
+        } else {
+          setNotification('Ошибка сервера');
+        }
       }
     }
   }
 
   const redactFlight = async () => {
-    if (flightData.number === "" && flightData.target === "" && flightData.date === "") {
+    if (flightData.name === "" && flightData.target === "" && flightData.date === "") {
       setNotification("Не введены изменения.");
     } else {
       try {
         const response = await axios.put(`http://localhost:5000/api/flight/${id}`, flightData);
         setFlights(response.data);
 
-        setFlightData({number: "", target: "", date: "", planeId: ""})
+        setFlightData({name: "", target: "", date: "", planeId: ""})
+        setID("")
         setOpen(false);
       } catch (error) {
-        handleErrorResponse(error);
+        if (error.response && error.response.data && error.response.data.error) {
+          setNotification(error.response.data.error);
+        } else {
+          setNotification('Ошибка сервера');
+        }
+      }
+    }
+  }
+
+  const deleteFlight = async () => {
+    try {
+      const response = await axios.delete(`http://localhost:5000/api/flight/${id}`);
+      setFlights(response.data);
+      setOpen(false);
+      setID("")
+      setNotification("");
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.error) {
+        setNotification(error.response.data.error);
+      } else {
+        setNotification('Ошибка сервера');
+      }
+    }
+  }
+
+  const createBooking = async () => {
+    if (bookingData.name === "" || bookingData.surname === "") {
+      setNotification("Введены не все данные.");
+    } else {
+      try {
+        await axios.post(`http://localhost:5000/api/booking/${id}`, {name: bookingData.name + " " + bookingData.surname + " " + bookingData.fatherName});
+        setOpen(false);
+        setBookingData({name: "", surname: "", fatherName: "", flightId: ""})
+        setNotification("");
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.error) {
+          setNotification(error.response.data.error);
+        } else {
+          setNotification('Ошибка сервера');
+        }
+      }
+    }
+  }
+
+  const redactBooking = async () => {
+    if (bookingData.surname === "" && bookingData.flightId === "") {
+      setNotification("Введены не все данные.");
+    } else {
+      try {
+        await axios.put(`http://localhost:5000/api/booking/${id}`, {name: bookingData.surname || bookingData.name, flightId: bookingData.flightId});
+        setOpen(false);
+        setBookingData({name: "", surname: "", fatherName: "", flightId: ""})
+        setNotification("");
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.error) {
+          setNotification(error.response.data.error);
+        } else {
+          setNotification('Ошибка сервера');
+        }
+      }
+    }
+  }
+
+  const deleteBooking = async () => {
+    try {
+      await axios.delete(`http://localhost:5000/api/booking/${id}`);
+      setOpen(false);
+      getFlights();
+      setNotification("");
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.error) {
+        setNotification(error.response.data.error);
+      } else {
+        setNotification('Ошибка сервера');
       }
     }
   }
@@ -141,18 +224,18 @@ function App() {
           <div>
             <div className="platform-bottom">
               <div>
-                № рейса: <Input input={(value) => setFlightData({ ...flightData, number: value })} placeholder={"введите имя..."} />
+                № рейса: <Input input={(value) => setFlightData({ ...flightData, name: value })} placeholder={"введите имя..."} />
               </div>
               <div>
-                назначение: <Input input={(value) => setFlightData({ ...flightData, target: value })} placeholder={"введите место..."} />
+                назначение: <Input input={(value) => setFlightData({ ...flightData, target: value })} placeholder={"введите назначение..."} />
               </div>
             </div>
             <div className="platform-bottom">
               <div>
-                время вылета: <DateInput input={(value) => setFlightData({ ...flightData, date: value })} placeholder={"введите количество..."} />
+                время вылета: <DateInput input={(value) => setFlightData({ ...flightData, date: value })}/>
               </div>
               <div>
-                самолёт: <Select onSelect={(value) => setFlightData({ ...flightData, planeId: value })} options={planes} placeholder={"введите количество..."} />
+                самолёт: <Select onSelect={(value) => setFlightData({ ...flightData, planeId: value })} options={planes}/>
               </div>
             </div>
             <div className="platform-bottom">
@@ -166,15 +249,15 @@ function App() {
           <div>
             <div className="platform-bottom">
               <div>
-                № рейса: <Input input={(value) => setFlightData({ ...flightData, number: value })} placeholder={"введите имя..."} />
+                № рейса: <Input input={(value) => setFlightData({ ...flightData, name: value })} placeholder={"введите имя..."} />
               </div>
               <div>
-                назначение: <Input input={(value) => setFlightData({ ...flightData, target: value })} placeholder={"введите место..."} />
+                назначение: <Input input={(value) => setFlightData({ ...flightData, target: value })} placeholder={"введите назначение..."} />
               </div>
             </div>
             <div className="platform-bottom">
               <div>
-                время вылета: <DateInput input={(value) => setFlightData({ ...flightData, date: value })} placeholder={"введите количество..."} />
+                время вылета: <DateInput input={(value) => setFlightData({ ...flightData, date: value })}/>
               </div>
               <div>
                 самолёт: <Select onSelect={(value) => setFlightData({ ...flightData, planeId: value })} options={planes}/>
@@ -186,6 +269,67 @@ function App() {
             </div>
           </div>
         );
+        case "Удаление рейса":
+          return (
+            <div>
+              <div className="platform-bottom">
+                    Удаление рейса приведёт к удалению его данных и броней.
+                </div>
+                <div className="platform-bottom">
+                    <Button onClick={() => setOpen(false)}>отмена</Button>
+                    <div className='notification'>{notification}</div>
+                    <Button onClick={() => deleteFlight()} type={"danger"}>удалить</Button>
+                </div>
+            </div>
+          );
+        case "Создание брони":
+          return (
+            <div>
+              <div className="platform-bottom">
+                <div>
+                  Имя <Input input={(value) => setBookingData({ ...bookingData, name: value })} placeholder={"имя..."} />
+                </div>
+                <div>
+                  Фамилия <Input input={(value) => setBookingData({ ...bookingData, surname: value })} placeholder={"фамилия..."} />
+                </div>
+                <div>
+                  Отчество <Input input={(value) => setBookingData({ ...bookingData, fatherName: value })} placeholder={"отчество (опциально)..."} />
+                </div>
+              </div>
+              <div className="platform-bottom">
+                <div className='notification'>{notification}</div>
+                <Button onClick={() => createBooking()}>подтвердить</Button>
+              </div>
+            </div>
+          );
+          case "Редактирование брони":
+            return (
+              <div>
+                <div className="platform-bottom">
+                  <div>
+                    ФИО <Input input={(value) => setBookingData({ ...bookingData, surname: value })} placeholder={bookingData.name} />
+                  </div>
+                  <div>
+                    Рейс <Select onSelect={(value) => setBookingData({ ...bookingData, flightId: value })} options={flights}/>
+                  </div>
+                  <div className='notification'>{notification}</div>
+                  <Button onClick={() => redactBooking()}>подтвердить</Button>
+                </div>
+              </div>
+            );
+          case "Удаление брони":
+            return (
+              <div>
+                <div className="platform-bottom">
+                      Вы уверены, что хотите удалить бронь, ведь кто-то может не улетит на море?(((
+                  </div>
+                  <div className="platform-bottom">
+                      <Button onClick={() => setOpen(false)}>отмена</Button>
+                      <div className='notification'>{notification}</div>
+                      <Button onClick={() => deleteBooking()} type={"danger"}>удалить</Button>
+                  </div>
+              </div>
+            );
       default:
         return (<div>данного модального окна не существует</div>);
     }
@@ -238,22 +382,88 @@ function App() {
           {flights.map((flight) =>
             <Accordion
               key={flight.id}
-              id={"ID: " + truncateString(flight.id)}
-              title={"№ " + flight.number}
-              info={
-                <div className='accordion-infos'>
-                  <div className='accordion-info'><div className="accordion-id">назначение:</div> {flight.target}</div>
-                  <div className='accordion-info'><div className="accordion-id">время:</div> {formatDateTime(flight.date)}</div>
-                  <div className='accordion-info'><div className="accordion-id">самолёт:</div> {findPlaneName(flight.planeId)}</div>
+              header={
+                <div className='accordion-right'>
+                  <div className='accordion-title'>
+                    {"№ " + flight.name}
+                  </div>
+                  <div className="accordion-id">{"ID: " + truncateString(flight.id)}</div>
+                  <div className='accordion-infos'>
+                    <div className='accordion-info'><div className="accordion-id">время:</div> {formatDateTime(flight.date)}</div>
+                    <div className='accordion-info'><div className="accordion-id">назначение:</div> {flight.target}</div>
+                    <div className='accordion-info'><div className="accordion-id">самолёт:</div> {findPlaneName(flight.planeId)}</div>
+                  </div>
                 </div>
               }
-              redact={() => (
-                setOpen(true),
-                setCase("Редактирование рейса"),
-                setID(flight.id)
-              )}
+              footer={
+                <div className="accordion-bottom">
+                  <div>
+                    <Button onClick={() => (
+                      setOpen(true),
+                      setCase("Редактирование рейса"),
+                      setID(flight.id)
+                    )} type={"default"}>
+                      редактировать рейс
+                    </Button>
+                    <Button onClick={() => (
+                      setOpen(true),
+                      setCase("Создание брони"),
+                      setID(flight.id)
+                    )}>+ бронь</Button>
+                  </div>
+                  <Button onClick={() => (
+                    setOpen(true),
+                    setCase("Удаление рейса"),
+                    setID(flight.id)
+                  )} type={"danger"}>
+                    <i className="fa fa-remove" style={{color: "white", fontSize: "25px"}}></i>
+                  </Button>
+                </div>
+              }
             >
-              hey
+              <div className='accordion-body'>
+                {
+                  !flight || !flight.bookings || flight.bookings.length === 0 ? (
+                    <div className='no-accordions'>БРОНЕЙ НЕТ</div>
+                  ) : (
+                    <table className='accordion-table'>
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>ФИО</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {flight.bookings.map((booking) => (
+                          <tr key={booking.id}>
+                            <td><div className="accordion-id">{truncateString(booking.id)}</div></td>
+                            <td>{booking.name}</td>
+                            <td className='buttons'>
+                              <Button onClick={() => (
+                                setOpen(true),
+                                setCase("Редактирование брони"),
+                                setID(booking.id),
+                                setBookingData({ ...bookingData, name: booking.name })
+                              )}>
+                                <i className="fa fa-edit" style={{color: "white"}}></i>
+                              </Button>
+                              <Button onClick={() => (
+                                setOpen(true),
+                                setCase("Удаление брони"),
+                                setID(booking.id),
+                                setBookingData({ ...bookingData, name: booking.name })
+                              )} type={"danger"}>
+                                <i className="fa fa-remove" style={{color: "white"}}></i>
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )
+                }
+              </div>
             </Accordion>
           )}
           <div className='avia-button'>

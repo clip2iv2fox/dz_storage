@@ -38,7 +38,7 @@ const Flight = sequelize.define('flight', {
         allowNull: false,
         primaryKey: true,
     },
-    number: {
+    name: {
         type: DataTypes.STRING,
         allowNull: false,
     },
@@ -66,7 +66,7 @@ const Booking = sequelize.define('booking', {
 });
 
 // Определение ассоциаций
-Plane.hasMany(Plane, {
+Plane.hasMany(Flight, {
     foreignKey: 'planeId',
     onDelete: 'CASCADE',
 });
@@ -75,14 +75,17 @@ Flight.belongsTo(Plane, {
     onDelete: 'CASCADE',
 });
 
-Flight.hasMany(Flight, {
+Flight.hasMany(Booking, {
     foreignKey: 'flightId',
+    as: 'bookings',
     onDelete: 'CASCADE',
 });
 Booking.belongsTo(Flight, {
     foreignKey: 'flightId',
+    as: 'flight',
     onDelete: 'CASCADE',
 });
+
 
 // Создать таблицы, если их нет
 Plane.sync();
@@ -155,7 +158,13 @@ app.delete('/api/plane/:planeId', async (req, res) => {
 // рейсы
 app.get('/api/flight', async (req, res) => {
     try {
-        const flights = await Flight.findAll();
+        const flights = await Flight.findAll({
+            include: [{
+                model: Booking,
+                as: 'bookings',
+            }],
+        });
+
         res.json(flights);
     } catch (error) {
         console.error(error);
@@ -165,7 +174,7 @@ app.get('/api/flight', async (req, res) => {
 
 app.post('/api/flight', async (req, res) => {
     try {
-        const { number, date, target, planeId } = req.body;
+        const { name, date, target, planeId } = req.body;
 
         const plane = await Plane.findByPk(planeId);
 
@@ -185,7 +194,7 @@ app.post('/api/flight', async (req, res) => {
         }
 
         Flight.create({
-            number: number,
+            name: name,
             date: date,
             target: target,
             planeId: planeId,
@@ -202,7 +211,7 @@ app.post('/api/flight', async (req, res) => {
 app.put('/api/flight/:flightId', async (req, res) => {
     try {
         const flightId = req.params.flightId;
-        const { number, date, target, planeId } = req.body;
+        const { name, date, target, planeId } = req.body;
 
         const plane = await Plane.findByPk(planeId);
 
@@ -224,7 +233,7 @@ app.put('/api/flight/:flightId', async (req, res) => {
         const flight = await Flight.findByPk(flightId);
 
         await flight.update({
-            number: number || flight.number,
+            name: name || flight.name,
             date: date || flight.date,
             target: target || flight.target,
             planeId: planeId || flight.planeId,
@@ -242,23 +251,10 @@ app.delete('/api/flight/:flightId', async (req, res) => {
     try {
         const flightId = req.params.flightId;
 
-        const flightToDelete = await Flight.findByPk(flightId, {
-            include: [{
-                model: Booking,
-                as: 'bookings',
-            }],
-        });
+        const flightToDelete = await Flight.findByPk(flightId);
 
         if (!flightToDelete) {
             return res.status(404).json({ error: 'Рейс не найден' });
-        }
-
-        if (flightToDelete.bookings && flightToDelete.bookings.length > 0) {
-            await Booking.destroy({
-                where: {
-                    id: flightToDelete.bookings.map(booking => booking.id),
-                },
-            });
         }
 
         await flightToDelete.destroy();
@@ -293,7 +289,13 @@ app.post('/api/booking/:flightId', async (req, res) => {
             },
         });
 
-        if (bookedSeats >= flight.number) {
+        const plane = await Plane.findByPk(flight.planeId);
+
+        if (!plane) {
+            return res.status(404).json({ error: 'Самолет не найден' });
+        }
+
+        if (bookedSeats >= plane.value) {
             return res.status(400).json({ error: 'На рейсе нет свободных мест' });
         }
 
@@ -338,17 +340,17 @@ app.put('/api/booking/:bookingId', async (req, res) => {
         const bookedSeats = await Booking.count({
             where: {
                 flightId: flightId,
-                id: { [Op.ne]: bookingId }, // Exclude the current booking when counting
+                id: { [Op.ne]: bookingId },
             },
         });
 
-        if (bookedSeats >= flight.number) {
+        if (bookedSeats >= flight.name) {
             return res.status(400).json({ error: 'На рейсе нет свободных мест' });
         }
 
         const existingBooking = await Booking.findOne({
             where: {
-                name: name,
+                name: { [Op.ne]: name },
             },
         });
 
@@ -405,13 +407,6 @@ app.delete('/api/booking/:bookingId', async (req, res) => {
         const flightId = bookingToDelete.flightId
 
         await bookingToDelete.destroy();
-
-        const bookings = await Booking.findAll({
-            where: {
-                flightId: flightId,
-            },
-        });
-        res.json(bookings);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка удаления брони' });

@@ -33,6 +33,10 @@
   padding: 0 10px;
 }
 
+.accordion-body{
+  padding: 15px;
+}
+
 .accordion-bottom{
   display: flex;
   align-items: baseline;
@@ -75,7 +79,7 @@
   color: var(--grey);
 }
 
-.application-table{
+.accordion-table{
   width: 100%;
   border-collapse: collapse;
   padding: 5px;
@@ -83,25 +87,20 @@
   font-size: calc(4px + 2vmin);
 }
 
-.application-table th {
+.accordion-table th {
   padding: 8px;
   text-align: left;
 }
 
-.application-table td {
-  border-top: 2px solid var(--grey);
-  border-bottom: 2px solid var(--grey);
-  text-align: left;
+.buttons {
+  text-align: right;
 }
 
-.no-applications{
+.no-accordions{
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   color: var(--grey);
-  padding: 10px;
   font-size: calc(6px + 2vmin);
-  border-top: 2px solid var(--grey);
-  border-bottom: 2px solid var(--grey);
 }
