@@ -199,7 +199,7 @@ app.post('/api/flight', async (req, res) => {
     }
 });
 
-app.put('/api/flight/flightId', async (req, res) => {
+app.put('/api/flight/:flightId', async (req, res) => {
     try {
         const flightId = req.params.flightId;
         const { number, date, target, planeId } = req.body;
@@ -224,10 +224,10 @@ app.put('/api/flight/flightId', async (req, res) => {
         const flight = await Flight.findByPk(flightId);
 
         await flight.update({
-            number: number,
-            date: date,
-            target: target,
-            planeId: planeId,
+            number: number || flight.number,
+            date: date || flight.date,
+            target: target || flight.target,
+            planeId: planeId || flight.planeId,
         });
 
         const flights = await Flight.findAll();
