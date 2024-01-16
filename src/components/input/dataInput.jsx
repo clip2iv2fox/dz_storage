@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const DateInput = ({ placeholder, input, min = null }) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().slice(0, 16);
     const [selectedDate, setSelectedDate] = useState(placeholder);
 
     const handleDateChange = (event) => {
@@ -11,8 +11,8 @@ const DateInput = ({ placeholder, input, min = null }) => {
 
     return (
         <input
-            type="date"
-            id="dateInput"
+            type="datetime-local"
+            id="dateTimeInput"
             value={selectedDate}
             onChange={handleDateChange}
             min={min ? min : today}
