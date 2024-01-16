@@ -1,0 +1,24 @@
+@import '../../variables.css';
+
+.platform {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid var(--secondary);
+    border-radius: 5px;
+}
+
+.platform-data {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    width: 100%;
+}
+
+.platform-id {
+    font-size: calc(8px + 2vmin);
+    color: var(--grey);
+}

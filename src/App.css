@@ -1,0 +1,32 @@
+@import './variables.css';
+
+.App {
+  background-color: var(--background);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  font-size: calc(10px + 2vmin);
+  color: var(--text);
+}
+
+.App-body {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  min-height: 100%;
+}
+
+.sidebar {
+  width: 30vw;
+  min-height: 100%;
+  border-right: var(--secondary) solid 2px;
+}
+
+.avia-button {
+  margin-left: 56px;
+}
+
+.notification {
+  color: var(--accent);
+}

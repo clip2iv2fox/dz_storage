@@ -1,0 +1,78 @@
+@import '../../variables.css';
+
+.accordion {
+    border: 1px solid var(--border);
+    margin: 10px 25px;
+    padding: 0 10px 10px 10px;
+    border-radius: 5px;
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+.arrow {
+  font-size: 18px;
+}
+
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+.accordion-content {
+  padding: 0 10px;
+}
+  
+.accordion-bottom{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.avia-right{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.avia-id{
+  font-size: calc(4px + 2vmin);
+  margin: 10px;
+  color: var(--grey);
+}
+
+.application-table{
+  width: 100%;
+  border-collapse: collapse;
+  padding: 5px;
+  margin-bottom: 15px;
+  font-size: calc(4px + 2vmin);
+}
+
+.application-table th {
+  padding: 8px;
+  text-align: left;
+}
+
+.application-table td {
+  border-top: 2px solid var(--grey);
+  border-bottom: 2px solid var(--grey);
+  text-align: left;
+}
+
+.no-applications{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  color: var(--grey);
+  padding: 10px;
+  font-size: calc(6px + 2vmin);
+  border-top: 2px solid var(--grey);
+  border-bottom: 2px solid var(--grey);
+}

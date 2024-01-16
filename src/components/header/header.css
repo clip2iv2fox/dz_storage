@@ -1,0 +1,38 @@
+@import '../../variables.css';
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    margin-bottom: 10px;
+    background: var(--background);
+    background: linear-gradient(0deg, var(--background) 0%, var(--primary) 20%);
+}
+  
+.title{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--background);
+}
+
+.logo {
+    height: 40px; 
+    width: 40px;
+    margin-right: 10px;
+}
+
+.icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 35px; 
+    width: 35px;
+    border-radius: 50%;
+    background-color: var(--accent);
+    margin-left: 10px;
+    font-size: 20px;
+    border: 2px solid var(--secondary);
+}
+  
