@@ -1,21 +1,27 @@
 @import '../../variables.css';
 
 .accordion {
-    border: 1px solid var(--border);
-    margin: 10px 25px;
-    padding: 0 10px 10px 10px;
-    border-radius: 5px;
+  border: 1px solid var(--accent);
+  margin: 10px 25px;
+  padding: 10px;
+  border-radius: 5px;
 }
 
 .accordion-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 15px 15px 15px;
   cursor: pointer;
 }
 
+.accordion-header.open {
+  border-bottom: 1px solid var(--accent);
+}
+
 .arrow {
+  color: var(--accent);
+  margin-left: 20px;
   font-size: 18px;
 }
 
@@ -26,23 +32,46 @@
 .accordion-content {
   padding: 0 10px;
 }
-  
+
 .accordion-bottom{
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   padding: 10px;
+  border-top: 1px solid var(--accent);
 }
 
-.avia-right{
+.accordion-title{
+  font-size: calc(12px + 2vmin);
+  font-weight: bold;
+}
+
+.accordion-right{
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
-.avia-id{
+.accordion-infos {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   font-size: calc(4px + 2vmin);
-  margin: 10px;
+}
+
+.accordion-info {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.accordion-id{
+  font-size: calc(1px + 2vmin);
+  margin: 5px;
   color: var(--grey);
 }
 
