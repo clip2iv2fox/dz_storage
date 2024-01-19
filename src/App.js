@@ -10,6 +10,9 @@ import axios from 'axios';
 import Platform from './components/platform/platform';
 import DateInput from './components/input/dataInput';
 import Select from './components/select/select';
+import { getPlanesApi, deletePlaneApi, createPlaneApi } from './configs/planeApi';
+import { createFlightApi, deleteFlightApi, getFlightsApi, updateFlightApi } from './configs/flightApi';
+import { createBookingApi, deleteBookingApi, updateBookingApi } from './configs/bookingApi';
 
 function App() {
   const [planes, setPlanes] = useState([]);
@@ -37,9 +40,8 @@ function App() {
 
   const getFlights = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/flight');
-      setFlights(response.data);
-      console.log(response.data)
+      const response = await getFlightsApi();
+      setFlights(response);
     } catch (error) {
       console.error('Ошибка:' + error);
     }
@@ -47,8 +49,8 @@ function App() {
 
   const getPlanes = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/plane');
-      setPlanes(response.data);
+      const response = await getPlanesApi();
+      setPlanes(response);
     } catch (error) {
       console.error('Ошибка:' + error);
     }
@@ -56,17 +58,13 @@ function App() {
 
   const deletePlanes = async (idPlane) => {
     try {
-      const response = await axios.delete(`http://localhost:5000/api/plane/${idPlane}`);
-      setPlanes(response.data);
+      const response = await deletePlaneApi(idPlane);
+      setPlanes(response);
       setOpen(false);
       getFlights();
       setNotification("");
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.error) {
-        setNotification(error.response.data.error);
-      } else {
-        setNotification('Ошибка сервера');
-      }
+      console.error('Ошибка:' + error);
     }
   };
 
@@ -75,17 +73,13 @@ function App() {
       setNotification("Введены не все данные.");
     } else {
       try {
-        const response = await axios.post('http://localhost:5000/api/plane', planeData);
-        setPlanes(response.data);
+        const response = await createPlaneApi(planeData);
+        setPlanes(response);
 
-        setPlaneData({name: "", value: "" })
+        setPlaneData({ name: "", value: "" });
         setOpen(false);
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.error) {
-          setNotification(error.response.data.error);
-        } else {
-          setNotification('Ошибка сервера');
-        }
+        handleError(error);
       }
     }
   };
@@ -95,55 +89,43 @@ function App() {
       setNotification("Введены не все данные.");
     } else {
       try {
-        const response = await axios.post('http://localhost:5000/api/flight', flightData);
-        setFlights(response.data);
+        const response = await createFlightApi(flightData);
+        setFlights(response);
 
         setFlightData({name: "", target: "", date: "", planeId: ""})
         setOpen(false);
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.error) {
-          setNotification(error.response.data.error);
-        } else {
-          setNotification('Ошибка сервера');
-        }
+        handleError(error);
       }
     }
   }
 
   const redactFlight = async () => {
-    if (flightData.name === "" && flightData.target === "" && flightData.date === "") {
+    if (flightData.name === "" && flightData.target === "" && flightData.date === "" && flightData.planeId === "") {
       setNotification("Не введены изменения.");
     } else {
       try {
-        const response = await axios.put(`http://localhost:5000/api/flight/${id}`, flightData);
-        setFlights(response.data);
+        const response = await updateFlightApi(id, flightData);
+        setFlights(response);
 
         setFlightData({name: "", target: "", date: "", planeId: ""})
         setID("")
         setOpen(false);
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.error) {
-          setNotification(error.response.data.error);
-        } else {
-          setNotification('Ошибка сервера');
-        }
+        handleError(error);
       }
     }
   }
 
   const deleteFlight = async () => {
     try {
-      const response = await axios.delete(`http://localhost:5000/api/flight/${id}`);
-      setFlights(response.data);
+      const response = await deleteFlightApi(id);
+      setFlights(response);
       setOpen(false);
       setID("")
       setNotification("");
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.error) {
-        setNotification(error.response.data.error);
-      } else {
-        setNotification('Ошибка сервера');
-      }
+      handleError(error);
     }
   }
 
@@ -152,16 +134,12 @@ function App() {
       setNotification("Введены не все данные.");
     } else {
       try {
-        await axios.post(`http://localhost:5000/api/booking/${id}`, {name: bookingData.name + " " + bookingData.surname + " " + bookingData.fatherName});
+        await createBookingApi(id, {name: bookingData.name + " " + bookingData.surname + " " + bookingData.fatherName});
         setOpen(false);
         setBookingData({name: "", surname: "", fatherName: "", flightId: ""})
         setNotification("");
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.error) {
-          setNotification(error.response.data.error);
-        } else {
-          setNotification('Ошибка сервера');
-        }
+        handleError(error);
       }
     }
   }
@@ -171,34 +149,34 @@ function App() {
       setNotification("Введены не все данные.");
     } else {
       try {
-        await axios.put(`http://localhost:5000/api/booking/${id}`, {name: bookingData.surname || bookingData.name, flightId: bookingData.flightId});
+        await updateBookingApi(id, {name: bookingData.surname || bookingData.name, flightId: bookingData.flightId});
         setOpen(false);
         setBookingData({name: "", surname: "", fatherName: "", flightId: ""})
         setNotification("");
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.error) {
-          setNotification(error.response.data.error);
-        } else {
-          setNotification('Ошибка сервера');
-        }
+        handleError(error);
       }
     }
   }
 
   const deleteBooking = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/booking/${id}`);
+      await deleteBookingApi(id);
       setOpen(false);
       getFlights();
       setNotification("");
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.error) {
-        setNotification(error.response.data.error);
-      } else {
-        setNotification('Ошибка сервера');
-      }
+      handleError(error);
     }
   }
+
+  const handleError = (error) => {
+    if (error.response && error.response.data && error.response.data.error) {
+      setNotification(error.response.data.error);
+    } else {
+      setNotification('Ошибка сервера');
+    }
+};
 
   const ModalCases = () => {
     switch (isCase) {
