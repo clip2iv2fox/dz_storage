@@ -77,12 +77,10 @@ Booking.belongsTo(Flight, {
     onDelete: 'CASCADE',
 });
 
-Plane.sync();
-Flight.sync();
-Booking.sync();
-
-const initializePlanes = async () => {
+const initializeDatabase = async () => {
     try {
+        await sequelize.sync();
+
         const existingPlanes = await Plane.findAll();
 
         if (existingPlanes.length === 0) {
@@ -94,10 +92,10 @@ const initializePlanes = async () => {
             await Plane.bulkCreate(planesData);
         }
     } catch (error) {
-        console.error('Ошибка при инициализации самолётов:', error);
+        console.error('Ошибка при инициализации базы данных:', error);
     }
 };
 
-initializePlanes();
+initializeDatabase();
 
 module.exports = { Plane, Flight, Booking };
