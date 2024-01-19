@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Sequelize, DataTypes, Op } = require('sequelize');
+const { Op } = require('sequelize');
+const { Plane, Flight, Booking } = require('./models');
 
 const app = express();
 const port = 5000;
@@ -8,108 +9,6 @@ const cors = require('cors');
 app.use(cors());
 app.use(bodyParser.json());
 
-const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: './database.sqlite',
-});
-
-// Определение моделей
-const Plane = sequelize.define('plane', {
-    id: {
-        type: DataTypes.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
-        primaryKey: true,
-    },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    value: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-});
-
-const Flight = sequelize.define('flight', {
-    id: {
-        type: DataTypes.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
-        primaryKey: true,
-    },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    date: {
-        type: DataTypes.DATE,
-        allowNull: false,
-    },
-    target: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-});
-
-const Booking = sequelize.define('booking', {
-    id: {
-        type: DataTypes.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
-        primaryKey: true,
-    },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-});
-
-// Определение ассоциаций
-Plane.hasMany(Flight, {
-    foreignKey: 'planeId',
-    onDelete: 'CASCADE',
-});
-Flight.belongsTo(Plane, {
-    foreignKey: 'planeId',
-    onDelete: 'CASCADE',
-});
-
-Flight.hasMany(Booking, {
-    foreignKey: 'flightId',
-    as: 'bookings',
-    onDelete: 'CASCADE',
-});
-Booking.belongsTo(Flight, {
-    foreignKey: 'flightId',
-    as: 'flight',
-    onDelete: 'CASCADE',
-});
-
-
-// Создать таблицы, если их нет
-Plane.sync();
-Flight.sync();
-Booking.sync();
-
-const initializePlanes = async () => {
-    try {
-        const existingPlanes = await Plane.findAll();
-
-        if (existingPlanes.length === 0) {
-            const planesData = [
-                { name: 'Boeing 747', value: 300 },
-                { name: 'Airbus A320', value: 150 },
-            ];
-
-            await Plane.bulkCreate(planesData);
-        }
-    } catch (error) {
-        console.error('Ошибка при инициализации самолётов:', error);
-    }
-};
-
-//////////////////////////////////////////////////////////////
 // cамолёты
 app.post('/api/plane', async (req, res) => {
     try {
@@ -337,20 +236,10 @@ app.put('/api/booking/:bookingId', async (req, res) => {
             return res.status(404).json({ error: 'Выбранный рейс не найден' });
         }
 
-        const bookedSeats = await Booking.count({
-            where: {
-                flightId: flightId,
-                id: { [Op.ne]: bookingId },
-            },
-        });
-
-        if (bookedSeats >= flight.name) {
-            return res.status(400).json({ error: 'На рейсе нет свободных мест' });
-        }
-
         const existingBooking = await Booking.findOne({
             where: {
-                name: { [Op.ne]: name },
+                name: name,
+                id: { [Op.ne]: bookingId },
             },
         });
 
@@ -358,7 +247,29 @@ app.put('/api/booking/:bookingId', async (req, res) => {
             return res.status(400).json({ error: 'Бронь с данными ФИО уже существует' });
         }
 
+        const plane = await Plane.findByPk(flight.planeId);
+
+        const bookedSeats = await Booking.count({
+            where: {
+                flightId: flightId,
+            },
+        });
+        if (bookedSeats >= plane.value) {
+            return res.status(400).json({ error: 'На рейсе нет свободных мест' });
+        }
+
         const booking = await Booking.findByPk(bookingId);
+
+        if (flightId != booking.flightId) {
+            const bookedSeats = await Booking.count({
+                where: {
+                    flightId: flightId,
+                },
+            });
+            if (bookedSeats >= flight.value) {
+                return res.status(400).json({ error: 'На рейсе нет свободных мест' });
+            }
+        }
 
         const oldFlight = await Flight.findByPk(booking.flightId);
 
@@ -370,7 +281,6 @@ app.put('/api/booking/:bookingId', async (req, res) => {
             name: name,
             flightId: flightId,
         });
-
         res.json({ message: 'Бронь успешно изменена' });
     } catch (error) {
         console.error(error);
@@ -404,9 +314,8 @@ app.delete('/api/booking/:bookingId', async (req, res) => {
             return res.status(404).json({ error: 'Бронь не найдена' });
         }
 
-        const flightId = bookingToDelete.flightId
-
         await bookingToDelete.destroy();
+        res.json({ message: 'Бронь успешно удалена' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка удаления брони' });
@@ -414,6 +323,5 @@ app.delete('/api/booking/:bookingId', async (req, res) => {
 });
 
 app.listen(port, () => {
-    initializePlanes();
     console.log(`Сервер запущен на порту ${port}`);
 });
