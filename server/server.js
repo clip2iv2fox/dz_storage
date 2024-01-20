@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { Op } = require('sequelize');
-const { Plane, Flight, Booking } = require('./models');
+const { Exercize, Workout, Practice } = require('./models');
 
 const app = express();
 const port = 5000;
@@ -9,316 +9,278 @@ const cors = require('cors');
 app.use(cors());
 app.use(bodyParser.json());
 
-// cамолёты
-app.post('/api/plane', async (req, res) => {
+// типы упражнений
+app.post('/api/exercize', async (req, res) => {
     try {
-        const { name, value } = req.body;
-        Plane.create({
+        const { name, difficulty } = req.body;
+        Exercize.create({
             name: name || 'неизвестен',
-            value: value || 1,
+            difficulty: difficulty || 1,
         });
         
-        const plane = await Plane.findAll();
-        res.json(plane);
+        const exercize = await Exercize.findAll();
+        res.json(exercize);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка сохранения в базе данных' });
     }
 });
 
-app.get('/api/plane', async (req, res) => {
+app.get('/api/exercize', async (req, res) => {
     try {
-        const plane = await Plane.findAll();
-        res.json(plane);
+        const exercize = await Exercize.findAll();
+        res.json(exercize);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка получения данных из базы данных' });
     }
 });
 
-app.delete('/api/plane/:planeId', async (req, res) => {
+app.delete('/api/exercize/:exercizeId', async (req, res) => {
     try {
-        const planeId = req.params.planeId;
-        const planeToDelete = await Plane.findByPk(planeId);
-        if (!planeToDelete) {
-            return res.status(404).json({ error: 'Самолёт не найден' });
+        const exercizeId = req.params.exercizeId;
+        const exercizeToDelete = await Exercize.findByPk(exercizeId);
+        if (!exercizeToDelete) {
+            return res.status(404).json({ error: 'Тип упражнения не найден' });
         }
 
-        await planeToDelete.destroy();
+        await exercizeToDelete.destroy();
 
-        const plane = await Plane.findAll();
-        res.json(plane);
+        const exercize = await Exercize.findAll();
+        res.json(exercize);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка удаления самолёта' });
+        res.status(500).json({ error: 'Ошибка удаления типа упражнения' });
     }
 });
 
-// рейсы
-app.get('/api/flight', async (req, res) => {
+// тренировки
+app.get('/api/workout', async (req, res) => {
     try {
-        const flights = await Flight.findAll({
+        const workouts = await Workout.findAll({
             include: [{
-                model: Booking,
-                as: 'bookings',
+                model: Practice,
+                as: 'practices',
             }],
         });
 
-        res.json(flights);
+        res.json(workouts);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка получения рейсов' });
+        res.status(500).json({ error: 'Ошибка получения тренировок' });
     }
 });
 
-app.post('/api/flight', async (req, res) => {
+app.post('/api/workout', async (req, res) => {
     try {
-        const { name, date, target, planeId } = req.body;
+        const { name, description, difficulty } = req.body;
 
-        const plane = await Plane.findByPk(planeId);
-
-        if (!plane) {
-            return res.status(404).json({ error: 'Выбранный самолёт не найден' });
-        }
-
-        const existingFlight = await Flight.findOne({
-            where: {
-                date: date,
-                target: target,
-            },
+        Workout.create({
+            name: name || "без названия",
+            description: description || "",
+            difficulty: difficulty || 0,
+            time: 0,
         });
 
-        if (existingFlight) {
-            return res.status(400).json({ error: 'Рейс с такой датой вылета или пунктом назначения уже существует' });
-        }
+        const workouts = await Workout.findAll({
+            include: [{
+                model: Practice,
+                as: 'practices',
+            }],
+        });
+        res.json(workouts);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка создания тренировки' });
+    }
+});
 
-        Flight.create({
+app.put('/api/workout/:workoutId', async (req, res) => {
+    try {
+        const workoutId = req.params.workoutId;
+        const { name, description, difficulty } = req.body;
+
+        const workout = await Workout.findByPk(workoutId);
+
+        await workout.update({
             name: name,
-            date: date,
-            target: target,
-            planeId: planeId,
+            description: description,
+            difficulty: difficulty,
         });
 
-        const flights = await Flight.findAll();
-        res.json(flights);
+        const workouts = await Workout.findAll({
+            include: [{
+                model: Practice,
+                as: 'practices',
+            }],
+        });
+
+        res.json(workouts);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка создания рейса' });
+        res.status(500).json({ error: 'Ошибка изменения тренировки' });
     }
 });
 
-app.put('/api/flight/:flightId', async (req, res) => {
+app.delete('/api/workout/:workoutId', async (req, res) => {
     try {
-        const flightId = req.params.flightId;
-        const { name, date, target, planeId } = req.body;
+        const workoutId = req.params.workoutId;
 
-        const plane = await Plane.findByPk(planeId);
+        const workoutToDelete = await Workout.findByPk(workoutId);
 
-        if (!plane) {
-            return res.status(404).json({ error: 'Выбранный самолёт не найден' });
+        if (!workoutToDelete) {
+            return res.status(404).json({ error: 'Тренировка не найдена' });
         }
 
-        const existingFlight = await Flight.findOne({
-            where: {
-                date: date,
-                target: target,
-            },
+        await workoutToDelete.destroy();
+
+        const workouts = await Workout.findAll({
+            include: [{
+                model: Practice,
+                as: 'practices',
+            }],
         });
-
-        if (existingFlight) {
-            return res.status(400).json({ error: 'Рейс с такой датой вылета или пунктом назначения уже существует' });
-        }
-
-        const flight = await Flight.findByPk(flightId);
-
-        await flight.update({
-            name: name || flight.name,
-            date: date || flight.date,
-            target: target || flight.target,
-            planeId: planeId || flight.planeId,
-        });
-
-        const flights = await Flight.findAll();
-        res.json(flights);
+        res.json(workouts);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка изменения рейса' });
+        res.status(500).json({ error: 'Ошибка удаления тренировки' });
     }
 });
 
-app.delete('/api/flight/:flightId', async (req, res) => {
+// практические упражнения тренировок
+app.post('/api/practice/:workoutId', async (req, res) => {
     try {
-        const flightId = req.params.flightId;
+        const workoutId = req.params.workoutId;
+        const { name, description, difficulty, time } = req.body;
 
-        const flightToDelete = await Flight.findByPk(flightId);
-
-        if (!flightToDelete) {
-            return res.status(404).json({ error: 'Рейс не найден' });
-        }
-
-        await flightToDelete.destroy();
-
-        const flights = await Flight.findAll();
-        res.json(flights);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Ошибка удаления рейса' });
-    }
-});
-
-// брони
-app.post('/api/booking/:flightId', async (req, res) => {
-    try {
-        const flightId = req.params.flightId;
-        const { name } = req.body;
-
-        if (!name) {
-            return res.status(404).json({ error: 'Не введено ФИО' });
-        }
-
-        const flight = await Flight.findByPk(flightId);
-
-        if (!flight) {
-            return res.status(404).json({ error: 'Выбранный рейс не найден' });
-        }
-
-        const bookedSeats = await Booking.count({
-            where: {
-                flightId: flightId,
-            },
+        const workout = await Workout.findByPk(workoutId, {
+            include: [{
+                model: Practice,
+                as: 'practices',
+            }],
         });
 
-        const plane = await Plane.findByPk(flight.planeId);
-
-        if (!plane) {
-            return res.status(404).json({ error: 'Самолет не найден' });
+        if (!workout) {
+            return res.status(404).json({ error: 'Выбранная тренировка не найдена' });
         }
 
-        if (bookedSeats >= plane.value) {
-            return res.status(400).json({ error: 'На рейсе нет свободных мест' });
+        const practiceDifficultySum = workout.practices.reduce((sum, practice) => sum + practice.difficulty, 0);
+
+        if (practiceDifficultySum + difficulty > workout.difficulty) {
+            return res.status(400).json({ error: 'Тренировка ' + workout.name + ' становится слишком сложная, дядька помрёт' });
         }
 
-        const existingBooking = await Booking.findOne({
-            where: {
-                name: name,
-            },
-        });
-
-        if (existingBooking) {
-            return res.status(400).json({ error: 'Бронь с данными ФИО уже существует' });
-        }
-
-        Booking.create({
+        await Practice.create({
             name: name,
-            flightId: flightId,
+            description: description,
+            difficulty: difficulty,
+            time: time,
+            workoutId: workoutId,
+        });
+
+        await workout.update({
+            time: time + workout.time,
         });
         
-        const bookings = await Booking.findAll({
-            where: {
-                flightId: flightId,
-            },
+        const workouts = await Workout.findAll({
+            include: [{
+                model: Practice,
+                as: 'practices',
+            }],
         });
-        res.json(bookings);
+        res.json(workouts);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка сохранения в базе данных' });
     }
 });
 
-app.put('/api/booking/:bookingId', async (req, res) => {
+app.put('/api/practice/:practiceId', async (req, res) => {
     try {
-        const bookingId = req.params.bookingId;
-        const { name, flightId } = req.body;
+        const practiceId = req.params.practiceId;
+        const { description, time, workoutId } = req.body;
 
-        const flight = await Flight.findByPk(flightId);
+        const practice = await Practice.findByPk(practiceId);
 
-        if (!flight) {
-            return res.status(404).json({ error: 'Выбранный рейс не найден' });
+        if (!practice) {
+            return res.status(404).json({ error: 'Выбранное упражнение не найдено' });
         }
 
-        const existingBooking = await Booking.findOne({
-            where: {
-                name: name,
-                id: { [Op.ne]: bookingId },
-            },
+        const workout = await Workout.findByPk(workoutId, {
+            include: [{
+                model: Practice,
+                as: 'practices',
+                id: { [Op.ne]: practiceId}
+            }],
         });
 
-        if (existingBooking) {
-            return res.status(400).json({ error: 'Бронь с данными ФИО уже существует' });
+        if (!workout) {
+            return res.status(404).json({ error: 'Выбранная тренировка не найдена' });
         }
 
-        const plane = await Plane.findByPk(flight.planeId);
+        const practiceDifficultySum = workout.practices.reduce((sum, practice) => sum + practice.difficulty, 0);
 
-        const bookedSeats = await Booking.count({
+        if (practiceDifficultySum + practice.difficulty > workout.difficulty) {
+            return res.status(400).json({ error: 'Тренировка ' + workout.name + ' становится слишком сложная, дядька помрёт' });
+        }
+
+        const workoutOld = await Workout.findByPk({
             where: {
-                flightId: flightId,
-            },
-        });
-        if (bookedSeats >= plane.value) {
-            return res.status(400).json({ error: 'На рейсе нет свободных мест' });
-        }
-
-        const booking = await Booking.findByPk(bookingId);
-
-        if (flightId != booking.flightId) {
-            const bookedSeats = await Booking.count({
-                where: {
-                    flightId: flightId,
-                },
-            });
-            if (bookedSeats >= flight.value) {
-                return res.status(400).json({ error: 'На рейсе нет свободных мест' });
+                workoutId: practice.workoutId
             }
-        }
-
-        const oldFlight = await Flight.findByPk(booking.flightId);
-
-        if (oldFlight.target !== flight.target) {
-            return res.status(400).json({ error: 'Пункт назначения должен совпадать со старым' });
-        }
-
-        await booking.update({
-            name: name,
-            flightId: flightId,
         });
-        res.json({ message: 'Бронь успешно изменена' });
+
+        await workoutOld.update({
+            time: workoutOld.time - practice.time,
+        });
+
+        await workout.update({
+            time: time + workout.time,
+        });
+
+        await practice.update({
+            description: description,
+            time: time,
+            workoutId: workoutId,
+        });
+        
+        const workouts = await Workout.findAll({
+            include: [{
+                model: Practice,
+                as: 'practices',
+            }],
+        });
+        res.json(workouts);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка изменения рейса' });
+        res.status(500).json({ error: 'Ошибка изменения упражнения' });
     }
 });
 
-
-app.get('/api/booking/:flightId', async (req, res) => {
+app.delete('/api/practice/:practiceId', async (req, res) => {
     try {
-        const flightId = req.params.flightId;
+        const practiceId = req.params.practiceId;
 
-        const bookings = await Booking.findAll({
+        const practiceToDelete = await Practice.findByPk(practiceId);
+        if (!practiceToDelete) {
+            return res.status(404).json({ error: 'Выбранное упражнение не найдено' });
+        }
+
+        const workout = await Workout.findByPk({
             where: {
-                flightId: flightId,
-            },
+                workoutId: practiceToDelete.workoutId
+            }
         });
-        res.json(bookings);
+
+        await workout.update({
+            time: workout.time - practiceToDelete.time,
+        });
+
+        await practiceToDelete.destroy();
+        res.json({ message: 'Упражнение успешно удалено' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка получения данных из базы данных' });
-    }
-});
-
-app.delete('/api/booking/:bookingId', async (req, res) => {
-    try {
-        const bookingId = req.params.bookingId;
-
-        const bookingToDelete = await Booking.findByPk(bookingId);
-        if (!bookingToDelete) {
-            return res.status(404).json({ error: 'Бронь не найдена' });
-        }
-
-        await bookingToDelete.destroy();
-        res.json({ message: 'Бронь успешно удалена' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Ошибка удаления брони' });
+        res.status(500).json({ error: 'Ошибка удаления упражнения' });
     }
 });
 

@@ -5,7 +5,7 @@ const sequelize = new Sequelize({
     storage: './database.sqlite',
 });
 
-const Plane = sequelize.define('plane', {
+const Exercize = sequelize.define('exercize', {
     id: {
         type: DataTypes.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -16,13 +16,13 @@ const Plane = sequelize.define('plane', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    value: {
+    difficulty: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
 });
 
-const Flight = sequelize.define('flight', {
+const Workout = sequelize.define('workout', {
     id: {
         type: DataTypes.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -33,17 +33,21 @@ const Flight = sequelize.define('flight', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    date: {
-        type: DataTypes.DATE,
+    description: {
+        type: DataTypes.STRING,
         allowNull: false,
     },
-    target: {
-        type: DataTypes.STRING,
+    difficulty: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    time: {
+        type: DataTypes.INTEGER,
         allowNull: false,
     },
 });
 
-const Booking = sequelize.define('booking', {
+const Practice = sequelize.define('practice', {
     id: {
         type: DataTypes.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -52,44 +56,42 @@ const Booking = sequelize.define('booking', {
     },
     name: {
         type: DataTypes.STRING,
+        allowNull: false,
+    },
+    description: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    time: {
+        type: DataTypes.INTEGER,
         allowNull: false,
     },
 });
 
 // Определение ассоциаций
-Plane.hasMany(Flight, {
-    foreignKey: 'planeId',
+Workout.hasMany(Practice, {
+    foreignKey: 'workoutId',
     onDelete: 'CASCADE',
 });
-Flight.belongsTo(Plane, {
-    foreignKey: 'planeId',
+Practice.belongsTo(Workout, {
+    foreignKey: 'workoutId',
     onDelete: 'CASCADE',
 });
 
-Flight.hasMany(Booking, {
-    foreignKey: 'flightId',
-    as: 'bookings',
-    onDelete: 'CASCADE',
-});
-Booking.belongsTo(Flight, {
-    foreignKey: 'flightId',
-    as: 'flight',
-    onDelete: 'CASCADE',
-});
 
 const initializeDatabase = async () => {
     try {
         await sequelize.sync();
 
-        const existingPlanes = await Plane.findAll();
+        const existingExercizes = await Exercize.findAll();
 
-        if (existingPlanes.length === 0) {
-            const planesData = [
-                { name: 'Boeing 747', value: 300 },
-                { name: 'Airbus A320', value: 150 },
+        if (existingExercizes.length === 0) {
+            const exercizeData = [
+                { name: 'Подъём штанги стоя', difficulty: 8 },
+                { name: 'Приседания', difficulty: 6 },
             ];
 
-            await Plane.bulkCreate(planesData);
+            await Exercize.bulkCreate(exercizeData);
         }
     } catch (error) {
         console.error('Ошибка при инициализации базы данных:', error);
