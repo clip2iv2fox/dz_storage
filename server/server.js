@@ -87,7 +87,7 @@ app.post('/api/workout', async (req, res) => {
         const { name, description, difficulty } = req.body;
 
         const exercises = await Exercize.findAll();
-        const minExerciseDifficulty = Math.min(...exercises.map(exercise => exercise.difficulty));
+        const minExerciseDifficulty = Math.max(...exercises.map(exercise => exercise.difficulty));
 
         if (difficulty < minExerciseDifficulty) {
             return res.status(400).json({ error: 'Сложность тренировки не может быть меньше сложности упражнений' });
@@ -118,13 +118,24 @@ app.put('/api/workout/:workoutId', async (req, res) => {
         const workoutId = req.params.workoutId;
         const { name, description, difficulty } = req.body;
 
-        const workout = await Workout.findByPk(workoutId);
+        const workout = await Workout.findByPk(workoutId, {
+            include: [{
+                model: Practice,
+                as: 'practices',
+            }],
+        });
 
         const exercises = await Exercize.findAll();
-        const minExerciseDifficulty = Math.min(...exercises.map(exercise => exercise.difficulty));
+        const minExerciseDifficulty = Math.max(...exercises.map(exercise => exercise.difficulty));
 
         if (difficulty < minExerciseDifficulty) {
             return res.status(400).json({ error: 'Сложность тренировки не может быть меньше сложности упражнений' });
+        }
+
+        const practiceDifficultySum = (workout.practices || []).reduce((sum, practice) => sum + practice.difficulty, 0);
+
+        if (practiceDifficultySum > difficulty) {
+            return res.status(400).json({ error: 'Тренировка слишком лёгкая для упражнений' });
         }
 
         await workout.update({
@@ -189,7 +200,7 @@ app.post('/api/practice/:workoutId', async (req, res) => {
             return res.status(404).json({ error: 'Выбранная тренировка не найдена' });
         }
 
-        const practiceDifficultySum = workout.practices.reduce((sum, practice) => sum + practice.difficulty, 0);
+        const practiceDifficultySum = (workout.practices || []).reduce((sum, practice) => sum + practice.difficulty, 0);
 
         if (practiceDifficultySum + difficulty > workout.difficulty) {
             return res.status(400).json({ error: 'Тренировка ' + workout.name + ' становится слишком сложная, дядька помрёт' });
@@ -245,33 +256,38 @@ app.put('/api/practice/:practiceId', async (req, res) => {
             include: [{
                 model: Practice,
                 as: 'practices',
-                where: {
-                    id: { [Op.ne]: practiceId }
-                },
             }],
-        });        
+        });
 
-        const workoutNew = await Workout.findByPk(workoutId);
-
-        if (!workoutNew) {
+        if (!workout) {
             return res.status(404).json({ error: 'Выбранная тренировка не найдена' });
         }
 
-        const practiceDifficultySum = workout.practices.reduce((sum, practice) => sum + practice.difficulty, 0);
+        const practiceDifficultySum = (workout.practices || []).reduce((sum, practice) => {
+            if (practice.id !== practiceId) {
+                return sum + practice.difficulty;
+            }
+            return sum;
+        }, 0);
 
         if (practiceDifficultySum + practice.difficulty > workout.difficulty) {
             return res.status(400).json({ error: 'Тренировка ' + workout.name + ' становится слишком сложная, дядька помрёт' });
         }
 
-        const workoutOld = await Workout.findByPk(practice.workoutId);
-
         const updatedTime = parseInt(time) || 0;
-        await workoutOld.update({
-            time: parseInt(workoutOld.time) - parseInt(practice.time),
-        });
 
         await workout.update({
             time: updatedTime + parseInt(workout.time),
+        });
+
+        const workoutOld = await Workout.findByPk(practice.workoutId);
+
+        if (!workoutOld) {
+            return res.status(404).json({ error: 'старая тренировка не найдена' });
+        }
+
+        await workoutOld.update({
+            time: parseInt(workoutOld.time) - parseInt(practice.time),
         });
 
         await practice.update({
