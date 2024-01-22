@@ -6,77 +6,75 @@ import Accordion from './components/accordion/accordion';
 import Modal from './components/modal/modal';
 import Input from './components/input/input';
 import NumInput from './components/input/numInput';
-import axios from 'axios';
 import Platform from './components/platform/platform';
-import DateInput from './components/input/dataInput';
 import Select from './components/select/select';
-import { getPlanesApi, deletePlaneApi, createPlaneApi } from './configs/planeApi';
-import { createFlightApi, deleteFlightApi, getFlightsApi, updateFlightApi } from './configs/flightApi';
-import { createBookingApi, deleteBookingApi, updateBookingApi } from './configs/bookingApi';
+import { getExercizesApi, deleteExercizeApi, createExercizeApi } from './configs/exercizeApi';
+import { createWorkoutApi, deleteWorkoutApi, getWorkoutsApi, updateWorkoutApi } from './configs/workoutApi';
+import { createPracticeApi, deletePracticeApi, updatePracticeApi } from './configs/practiceApi';
 
 function App() {
-  const [planes, setPlanes] = useState([]);
-  const [flights, setFlights] = useState([]);
+  const [exercizes, setExercizes] = useState([]);
+  const [workouts, setWorkouts] = useState([]);
   const [notification, setNotification] = useState("");
   const [isOpen, setOpen] = useState(false);
   const [isCase, setCase] = useState("");
   const [id, setID] = useState("")
-  const [planeData, setPlaneData] = useState({ name: "", value: ""});
-  const [flightData, setFlightData] = useState({ name: "", date: "", target: "", planeId: ""});
-  const [bookingData, setBookingData] = useState({name: "", surname: "", fatherName: "", flightId: ""})
+  const [exercizeData, setExercizeData] = useState({ name: "", difficulty: ""});
+  const [workoutData, setWorkoutData] = useState({ name: "", description: "", difficulty: "", time: ""});
+  const [practiceData, setPracticeData] = useState({name: "", description: "", difficulty: "", time: "", workoutId: ""})
 
   useEffect(() => {
-    getPlanes();
-    getFlights();
+    getExercizes();
+    getWorkouts();
     if (!isOpen) {
       setNotification("")
-      setPlaneData({name: "", value: "" })
-      setFlightData({name: "", target: "", date: "", planeId: ""})
-      setBookingData({name: "", surname: "", fatherName: "", flightId: ""})
+      setExercizeData({ name: "", difficulty: ""})
+      setWorkoutData({ name: "", description: "", difficulty: "", time: ""})
+      setPracticeData({name: "", description: "", difficulty: "", time: "", workoutId: ""})
       setID("")
     }
   }, [isOpen]);
 
 
-  const getFlights = async () => {
+  const getWorkouts = async () => {
     try {
-      const response = await getFlightsApi();
-      setFlights(response);
+      const response = await getWorkoutsApi();
+      setWorkouts(response);
     } catch (error) {
       console.error('Ошибка:' + error);
     }
   };
 
-  const getPlanes = async () => {
+  const getExercizes = async () => {
     try {
-      const response = await getPlanesApi();
-      setPlanes(response);
+      const response = await getExercizesApi();
+      setExercizes(response);
     } catch (error) {
       console.error('Ошибка:' + error);
     }
   };
 
-  const deletePlanes = async (idPlane) => {
+  const deleteExercizes = async (idExercize) => {
     try {
-      const response = await deletePlaneApi(idPlane);
-      setPlanes(response);
+      const response = await deleteExercizeApi(idExercize);
+      setExercizes(response);
       setOpen(false);
-      getFlights();
+      getWorkouts();
       setNotification("");
     } catch (error) {
       console.error('Ошибка:' + error);
     }
   };
 
-  const createPlanes = async () => {
-    if (planeData.name === "" || planeData.value === "") {
+  const createExercizes = async () => {
+    if (exercizeData.name === "" || exercizeData.difficulty === "") {
       setNotification("Введены не все данные.");
     } else {
       try {
-        const response = await createPlaneApi(planeData);
-        setPlanes(response);
+        const response = await createExercizeApi(exercizeData);
+        setExercizes(response);
 
-        setPlaneData({ name: "", value: "" });
+        setExercizeData({ name: "", difficulty: "" });
         setOpen(false);
       } catch (error) {
         handleError(error);
@@ -84,15 +82,19 @@ function App() {
     }
   };
 
-  const createFlights = async () => {
-    if (flightData.name === "" || flightData.target === "" || flightData.date === "") {
+  const createWorkouts = async () => {
+    if (workoutData.name === "" || workoutData.description === "" || workoutData.difficulty === "") {
       setNotification("Введены не все данные.");
     } else {
       try {
-        const response = await createFlightApi(flightData);
-        setFlights(response);
+        const response = await createWorkoutApi({
+          name: workoutData.name,
+          description: workoutData.description,
+          difficulty: workoutData.difficulty
+        });
+        setWorkouts(response);
 
-        setFlightData({name: "", target: "", date: "", planeId: ""})
+        setWorkoutData({name: "", description: "", difficulty: "", time: ""})
         setOpen(false);
       } catch (error) {
         handleError(error);
@@ -100,15 +102,19 @@ function App() {
     }
   }
 
-  const redactFlight = async () => {
-    if (flightData.name === "" && flightData.target === "" && flightData.date === "" && flightData.planeId === "") {
+  const redactWorkout = async () => {
+    if (workoutData.name === "" && workoutData.description === "" && workoutData.difficulty === "") {
       setNotification("Не введены изменения.");
     } else {
       try {
-        const response = await updateFlightApi(id, flightData);
-        setFlights(response);
+        const response = await updateWorkoutApi(id, {
+          name: workoutData.name, 
+          description: workoutData.description, 
+          difficulty: workoutData.difficulty,
+        });
+        setWorkouts(response);
 
-        setFlightData({name: "", target: "", date: "", planeId: ""})
+        setWorkoutData({name: "", description: "", difficulty: "", time: ""})
         setID("")
         setOpen(false);
       } catch (error) {
@@ -117,10 +123,10 @@ function App() {
     }
   }
 
-  const deleteFlight = async () => {
+  const deleteWorkout = async () => {
     try {
-      const response = await deleteFlightApi(id);
-      setFlights(response);
+      const response = await deleteWorkoutApi(id);
+      setWorkouts(response);
       setOpen(false);
       setID("")
       setNotification("");
@@ -129,41 +135,53 @@ function App() {
     }
   }
 
-  const createBooking = async () => {
-    if (bookingData.name === "" || bookingData.surname === "") {
+  const createPractice = async () => {
+    if (practiceData.name === "" || practiceData.time === "" || practiceData.description === "") {
+      console.log(practiceData)
       setNotification("Введены не все данные.");
     } else {
       try {
-        await createBookingApi(id, {name: bookingData.name + " " + bookingData.surname + " " + bookingData.fatherName});
+        await createPracticeApi(practiceData.workoutId, {
+          name: practiceData.name,
+          description: practiceData.description, 
+          difficulty: practiceData.difficulty,
+          time: practiceData.time
+        });
         setOpen(false);
-        setBookingData({name: "", surname: "", fatherName: "", flightId: ""})
+        setPracticeData({name: "", description: "", difficulty: "", time: "", workoutId: ""})
         setNotification("");
       } catch (error) {
         handleError(error);
       }
     }
-  }
+  };
 
-  const redactBooking = async () => {
-    if (bookingData.surname === "" && bookingData.flightId === "") {
-      setNotification("Введены не все данные.");
-    } else {
-      try {
-        await updateBookingApi(id, {name: bookingData.surname || bookingData.name, flightId: bookingData.flightId});
-        setOpen(false);
-        setBookingData({name: "", surname: "", fatherName: "", flightId: ""})
-        setNotification("");
-      } catch (error) {
-        handleError(error);
+  const redactPractice = async () => {
+      if (practiceData.name === "" && practiceData.description === "" && practiceData.time === "" && practiceData.workoutId === "") {
+        setNotification("Введены не все данные.");
+      } else {
+        try {
+          await updatePracticeApi(id, {
+            name: practiceData.name,
+            description: practiceData.description,
+            difficulty: practiceData.difficulty,
+            time: practiceData.time,
+            workoutId: practiceData.workoutId
+          });
+          setOpen(false);
+          setPracticeData({name: "", description: "", difficulty: "", time: "", workoutId: ""})
+          setNotification("");
+        } catch (error) {
+          handleError(error);
+        }
       }
-    }
-  }
+  };
 
-  const deleteBooking = async () => {
+  const deletePractice = async () => {
     try {
-      await deleteBookingApi(id);
+      await deletePracticeApi(id);
       setOpen(false);
-      getFlights();
+      getWorkouts();
       setNotification("");
     } catch (error) {
       handleError(error);
@@ -176,135 +194,133 @@ function App() {
     } else {
       setNotification('Ошибка сервера');
     }
-};
+  };
 
   const ModalCases = () => {
     switch (isCase) {
-      case "Добавить самолёт":
+      case "Добавить тип тренировки":
         return (
           <div>
             <div className="platform-bottom">
               <div>
-                Имя самолёта: <Input input={(value) => setPlaneData({ ...planeData, name: value })} placeholder={"введите имя..."} />
+                Имя: <Input input={(value) => setExercizeData({ ...exercizeData, name: value })} placeholder={"введите название..."} />
               </div>
               <div>
-                Места: <NumInput input={(value) => setPlaneData({ ...planeData, value: value })} min={1} placeholder={"введите количество..."} />
+                Сложность: <NumInput input={(value) => setExercizeData({ ...exercizeData, difficulty: value })} min={1} placeholder={"введите сложность..."} />
               </div>
             </div>
             <div className="platform-bottom">
               <div className='notification'>{notification}</div>
-              <Button onClick={() => createPlanes()}>подтвердить</Button>
+              <Button onClick={() => createExercizes()}>подтвердить</Button>
             </div>
           </div>
         );
-      case "Создать рейс":
+      case "Создать тренировку":
         return (
           <div>
             <div className="platform-bottom">
               <div>
-                № рейса: <Input input={(value) => setFlightData({ ...flightData, name: value })} placeholder={"введите имя..."} />
+                название: <Input input={(value) => setWorkoutData({ ...workoutData, name: value })} placeholder={"введите название..."}/>
               </div>
               <div>
-                назначение: <Input input={(value) => setFlightData({ ...flightData, target: value })} placeholder={"введите назначение..."} />
+                max сложность: <NumInput input={(value) => setWorkoutData({ ...workoutData, difficulty: value })} min={1} placeholder={"введите max сложность..."}/>
               </div>
             </div>
             <div className="platform-bottom">
-              <div>
-                время вылета: <DateInput input={(value) => setFlightData({ ...flightData, date: value })}/>
-              </div>
-              <div>
-                самолёт: <Select onSelect={(value) => setFlightData({ ...flightData, planeId: value })} options={planes}/>
-              </div>
+              описание: <Input input={(value) => setWorkoutData({ ...workoutData, description: value })} placeholder={"введите описание..."} />
             </div>
             <div className="platform-bottom">
               <div className='notification'>{notification}</div>
-              <Button onClick={() => createFlights()}>подтвердить</Button>
+              <Button onClick={() => createWorkouts()}>подтвердить</Button>
             </div>
           </div>
         );
-      case "Редактирование рейса":
+      case "Редактирование тренировки":
         return (
           <div>
             <div className="platform-bottom">
               <div>
-                № рейса: <Input input={(value) => setFlightData({ ...flightData, name: value })} placeholder={"введите имя..."} />
+                название: <Input input={(value) => setWorkoutData({ ...workoutData, name: value })} placeholder={"введите название..."}/>
               </div>
               <div>
-                назначение: <Input input={(value) => setFlightData({ ...flightData, target: value })} placeholder={"введите назначение..."} />
+                max сложность: <NumInput input={(value) => setWorkoutData({ ...workoutData, difficulty: value })} min={1} placeholder={"введите max сложность..."}/>
               </div>
             </div>
             <div className="platform-bottom">
-              <div>
-                время вылета: <DateInput input={(value) => setFlightData({ ...flightData, date: value })}/>
-              </div>
-              <div>
-                самолёт: <Select onSelect={(value) => setFlightData({ ...flightData, planeId: value })} options={planes}/>
-              </div>
+              описание: <Input input={(value) => setWorkoutData({ ...workoutData, description: value })} placeholder={"введите описание..."} />
             </div>
             <div className="platform-bottom">
               <div className='notification'>{notification}</div>
-              <Button onClick={() => redactFlight()}>подтвердить</Button>
+              <Button onClick={() => redactWorkout()}>подтвердить</Button>
             </div>
           </div>
         );
-        case "Удаление рейса":
+        case "Удаление тренировки":
           return (
             <div>
               <div className="platform-bottom">
-                    Удаление рейса приведёт к удалению его данных и броней.
+                    Удаление тренировки приведёт к удалению его данных и упражнений.
                 </div>
                 <div className="platform-bottom">
                     <Button onClick={() => setOpen(false)}>отмена</Button>
                     <div className='notification'>{notification}</div>
-                    <Button onClick={() => deleteFlight()} type={"danger"}>удалить</Button>
+                    <Button onClick={() => deleteWorkout()} type={"danger"}>удалить</Button>
                 </div>
             </div>
           );
-        case "Создание брони":
+        case "Создание упражнения":
           return (
             <div>
               <div className="platform-bottom">
                 <div>
-                  Имя <Input input={(value) => setBookingData({ ...bookingData, name: value })} placeholder={"имя..."} />
+                  тип <Select onSelect={(value) => setPracticeData({ ...practiceData, name: value.name, difficulty: value.difficulty })} options={exercizes}/>
                 </div>
                 <div>
-                  Фамилия <Input input={(value) => setBookingData({ ...bookingData, surname: value })} placeholder={"фамилия..."} />
-                </div>
-                <div>
-                  Отчество <Input input={(value) => setBookingData({ ...bookingData, fatherName: value })} placeholder={"отчество (опциально)..."} />
+                  время (мин.) <NumInput input={(value) => setPracticeData({ ...practiceData, time: value })} min={1} placeholder={"введите время..."}/>
                 </div>
               </div>
               <div className="platform-bottom">
+                описание <Input input={(value) => setPracticeData({ ...practiceData, description: value })} placeholder={"введите описание..."} />
+              </div>
+              <div className="platform-bottom">
                 <div className='notification'>{notification}</div>
-                <Button onClick={() => createBooking()}>подтвердить</Button>
+                <Button onClick={() => createPractice()}>подтвердить</Button>
               </div>
             </div>
           );
-          case "Редактирование брони":
+          case "Редактирование упражнения":
             return (
               <div>
                 <div className="platform-bottom">
                   <div>
-                    ФИО <Input input={(value) => setBookingData({ ...bookingData, surname: value })} placeholder={bookingData.name} />
+                    тип <Select onSelect={(value) => setPracticeData({ ...practiceData, name: value.name, difficulty: value.difficulty })} options={exercizes}/>
                   </div>
                   <div>
-                    Рейс <Select onSelect={(value) => setBookingData({ ...bookingData, flightId: value })} options={flights}/>
+                    тренировка <Select onSelect={(value) => setPracticeData({ ...practiceData, workoutId: value.id })} options={workouts}/>
                   </div>
+                  <div>
+                    время (мин.) <NumInput input={(value) => setWorkoutData({ ...practiceData, time: value })} min={1} placeholder={"введите время..."}/>
+                  </div>
+                </div>
+                <div className="platform-bottom">
+                  описание <Input input={(value) => setPracticeData({ ...practiceData, description: value })} placeholder={"введите описание..."} />
+                </div>
+                <div className="platform-bottom">
                   <div className='notification'>{notification}</div>
-                  <Button onClick={() => redactBooking()}>подтвердить</Button>
+                  <Button onClick={() => redactPractice()}>подтвердить</Button>
                 </div>
               </div>
             );
-          case "Удаление брони":
+          case "Удаление упражнения":
             return (
               <div>
                 <div className="platform-bottom">
-                      Вы уверены, что хотите удалить бронь, ведь кто-то может не улетит на море?(((
+                      Вы уверены, что хотите удалить упражнение?
                   </div>
                   <div className="platform-bottom">
                       <Button onClick={() => setOpen(false)}>отмена</Button>
                       <div className='notification'>{notification}</div>
-                      <Button onClick={() => deleteBooking()} type={"danger"}>удалить</Button>
+                      <Button onClick={() => deletePractice()} type={"danger"}>удалить</Button>
                   </div>
               </div>
             );
@@ -312,19 +328,6 @@ function App() {
         return (<div>данного модального окна не существует</div>);
     }
   };
-
-  function formatDateTime(dateTimeString) {
-    const dateTime = new Date(dateTimeString);
-    
-    const day = dateTime.getDate().toString().padStart(2, '0');
-    const month = (dateTime.getMonth() + 1).toString().padStart(2, '0');
-    const year = dateTime.getFullYear().toString().slice(2);
-  
-    const hours = dateTime.getHours().toString().padStart(2, '0');
-    const minutes = dateTime.getMinutes().toString().padStart(2, '0');
-  
-    return `${hours}:${minutes} ${day}.${month}.${year}`;
-  }
 
   function truncateString(inputString, maxLength = 8) {
     if (inputString.length <= maxLength) {
@@ -334,9 +337,9 @@ function App() {
     }
   }
 
-  function findPlaneName(planeId) {
-    const plane = planes.find(item => item.id === planeId);
-    return plane ? plane.name : null;
+  function findDifficulty(name) {
+    const Exercize = exercizes.find(item => item.name === name);
+    return Exercize ? Exercize.difficulty : null;
   }
 
   return (
@@ -344,32 +347,31 @@ function App() {
       <Header />
       <div className='App-body'>
         <div className='sidebar'>
-          {planes.map((plane) =>
+          {exercizes.map((exercize) =>
             <Platform
-              key={plane.id}
-              id={truncateString(plane.id)}
-              name={plane.name}
-              value={plane.value}
+              key={exercize.id}
+              id={truncateString(exercize.id)}
+              name={exercize.name}
+              value={exercize.difficulty}
               notification={notification}
-              del={() => deletePlanes(plane.id)}
+              del={() => deleteExercizes(exercize.id)}
             />
           )}
-          <Button onClick={() => (setOpen(true), setCase("Добавить самолёт"))}>+ самолёт</Button>
+          <Button onClick={() => (setOpen(true), setCase("Добавить тип тренировки"))}>+ тип</Button>
         </div>
         <div className='main'>
-          {flights.map((flight) =>
+          {workouts.map((workout) =>
             <Accordion
-              key={flight.id}
+              key={workout.id}
               header={
                 <div className='accordion-right'>
                   <div className='accordion-title'>
-                    {"№ " + flight.name}
+                    {workout.name}
                   </div>
-                  <div className="accordion-id">{"ID: " + truncateString(flight.id)}</div>
+                  <div className="accordion-id">{"ID: " + truncateString(workout.id)}</div>
                   <div className='accordion-infos'>
-                    <div className='accordion-info'><div className="accordion-id">время:</div> {formatDateTime(flight.date)}</div>
-                    <div className='accordion-info'><div className="accordion-id">назначение:</div> {flight.target}</div>
-                    <div className='accordion-info'><div className="accordion-id">самолёт:</div> {findPlaneName(flight.planeId)}</div>
+                    <div className='accordion-info'><div className="accordion-id">сложность:</div> {workout.difficulty}</div>
+                    <div className='accordion-info'><div className="accordion-id">время:</div> {workout.time}</div>
                   </div>
                 </div>
               }
@@ -378,21 +380,28 @@ function App() {
                   <div>
                     <Button onClick={() => (
                       setOpen(true),
-                      setCase("Редактирование рейса"),
-                      setID(flight.id)
+                      setCase("Редактирование тренировки"),
+                      setWorkoutData({ ...workoutData, 
+                        name: workout.name,
+                        description: workout.description,
+                        difficulty: workout.difficulty,
+                        time: workout.time
+                      }),
+                      setID(workout.id)
                     )} type={"default"}>
-                      редактировать рейс
+                      редактировать тренировку
                     </Button>
                     <Button onClick={() => (
                       setOpen(true),
-                      setCase("Создание брони"),
-                      setID(flight.id)
-                    )}>+ бронь</Button>
+                      setCase("Создание упражнения"),
+                      setPracticeData({ ...practiceData, workoutId: workout.id }),
+                      setID(workout.id)
+                    )}>+ упражнение</Button>
                   </div>
                   <Button onClick={() => (
                     setOpen(true),
-                    setCase("Удаление рейса"),
-                    setID(flight.id)
+                    setCase("Удаление тренировки"),
+                    setID(workout.id)
                   )} type={"danger"}>
                     <i className="fa fa-remove" style={{color: "white", fontSize: "25px"}}></i>
                   </Button>
@@ -401,36 +410,46 @@ function App() {
             >
               <div className='accordion-body'>
                 {
-                  !flight || !flight.bookings || flight.bookings.length === 0 ? (
-                    <div className='no-accordions'>БРОНЕЙ НЕТ</div>
+                  !workout || !workout.practices || workout.practices.length === 0 ? (
+                    <div className='no-accordions'>УПРАЖНЕНИЙ НЕТ</div>
                   ) : (
                     <table className='accordion-table'>
                       <thead>
                         <tr>
                           <th>ID</th>
-                          <th>ФИО</th>
+                          <th>Название</th>
+                          <th>Описание</th>
+                          <th>Сложность</th>
+                          <th>Время</th>
                           <th></th>
                         </tr>
                       </thead>
                       <tbody>
-                        {flight.bookings.map((booking) => (
-                          <tr key={booking.id}>
-                            <td><div className="accordion-id">{truncateString(booking.id)}</div></td>
-                            <td>{booking.name}</td>
+                        {workout.practices.map((practice) => (
+                          <tr key={practice.id}>
+                            <td><div className="accordion-id">{truncateString(practice.id)}</div></td>
+                            <td>{practice.name}</td>
+                            <td>{practice.description}</td>
+                            <td>{findDifficulty(practice.name)}</td>
+                            <td>{practice.time}</td>
                             <td className='buttons'>
                               <Button onClick={() => (
                                 setOpen(true),
-                                setCase("Редактирование брони"),
-                                setID(booking.id),
-                                setBookingData({ ...bookingData, name: booking.name })
+                                setCase("Редактирование упражнения"),
+                                setID(practice.id),
+                                setPracticeData({ ...practiceData, 
+                                  name: practice.name, 
+                                  description: practice.description, 
+                                  difficulty: practice.difficulty, 
+                                  time: practice.time, 
+                                  workoutId: practice.workoutId})
                               )}>
                                 <i className="fa fa-edit" style={{color: "white"}}></i>
                               </Button>
                               <Button onClick={() => (
                                 setOpen(true),
-                                setCase("Удаление брони"),
-                                setID(booking.id),
-                                setBookingData({ ...bookingData, name: booking.name })
+                                setCase("Удаление упражнения"),
+                                setID(practice.id)
                               )} type={"danger"}>
                                 <i className="fa fa-remove" style={{color: "white"}}></i>
                               </Button>
@@ -444,8 +463,8 @@ function App() {
               </div>
             </Accordion>
           )}
-          <div className='avia-button'>
-            <Button onClick={() => (setOpen(true), setCase("Создать рейс"))} type={"danger"}>+ рейс</Button>
+          <div className='app-button'>
+            <Button onClick={() => (setOpen(true), setCase("Создать тренировку"))} type={"danger"}>+ тренировка</Button>
           </div>
         </div>
       </div>

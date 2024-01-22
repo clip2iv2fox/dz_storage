@@ -39,3 +39,8 @@
     cursor: pointer;
     font-size: 20px;
 }
+
+.platform-accent{
+    color: var(--accent);
+    font-size: 20px;
+}

@@ -26,7 +26,7 @@
   flex-grow: 1; /* Растягиваем на всё оставшееся пространство */
 }
 
-.avia-button {
+.app-button {
   margin-left: 46px;
 }
 

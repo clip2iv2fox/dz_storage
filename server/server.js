@@ -13,6 +13,17 @@ app.use(bodyParser.json());
 app.post('/api/exercize', async (req, res) => {
     try {
         const { name, difficulty } = req.body;
+
+        const exercizeCopy = await Exercize.findOne({
+            where: {
+                name: name
+            }
+        });
+
+        if (exercizeCopy) {
+            return res.status(400).json({ error: 'Такой тип упражнений уже есть' });
+        }
+
         Exercize.create({
             name: name || 'неизвестен',
             difficulty: difficulty || 1,
@@ -75,10 +86,17 @@ app.post('/api/workout', async (req, res) => {
     try {
         const { name, description, difficulty } = req.body;
 
+        const exercises = await Exercize.findAll();
+        const minExerciseDifficulty = Math.min(...exercises.map(exercise => exercise.difficulty));
+
+        if (difficulty < minExerciseDifficulty) {
+            return res.status(400).json({ error: 'Сложность тренировки не может быть меньше сложности упражнений' });
+        }
+
         Workout.create({
             name: name || "без названия",
             description: description || "",
-            difficulty: difficulty || 0,
+            difficulty: difficulty || 1,
             time: 0,
         });
 
@@ -101,6 +119,13 @@ app.put('/api/workout/:workoutId', async (req, res) => {
         const { name, description, difficulty } = req.body;
 
         const workout = await Workout.findByPk(workoutId);
+
+        const exercises = await Exercize.findAll();
+        const minExerciseDifficulty = Math.min(...exercises.map(exercise => exercise.difficulty));
+
+        if (difficulty < minExerciseDifficulty) {
+            return res.status(400).json({ error: 'Сложность тренировки не может быть меньше сложности упражнений' });
+        }
 
         await workout.update({
             name: name,
@@ -179,7 +204,7 @@ app.post('/api/practice/:workoutId', async (req, res) => {
         });
 
         await workout.update({
-            time: time + workout.time,
+            time: parseInt(time) + parseInt(workout.time),
         });
         
         const workouts = await Workout.findAll({
@@ -198,23 +223,37 @@ app.post('/api/practice/:workoutId', async (req, res) => {
 app.put('/api/practice/:practiceId', async (req, res) => {
     try {
         const practiceId = req.params.practiceId;
-        const { description, time, workoutId } = req.body;
-
+        const { name, description, difficulty, time, workoutId } = req.body;
+        
         const practice = await Practice.findByPk(practiceId);
 
         if (!practice) {
             return res.status(404).json({ error: 'Выбранное упражнение не найдено' });
         }
 
+        const exercise = await Exercize.findOne({
+            where:{
+                name: name
+            }
+        });
+
+        if (!exercise) {
+            return res.status(404).json({ error: 'Выбранн тип не найден' });
+        }
+
         const workout = await Workout.findByPk(workoutId, {
             include: [{
                 model: Practice,
                 as: 'practices',
-                id: { [Op.ne]: practiceId}
+                where: {
+                    id: { [Op.ne]: practiceId }
+                },
             }],
-        });
+        });        
 
-        if (!workout) {
+        const workoutNew = await Workout.findByPk(workoutId);
+
+        if (!workoutNew) {
             return res.status(404).json({ error: 'Выбранная тренировка не найдена' });
         }
 
@@ -224,22 +263,21 @@ app.put('/api/practice/:practiceId', async (req, res) => {
             return res.status(400).json({ error: 'Тренировка ' + workout.name + ' становится слишком сложная, дядька помрёт' });
         }
 
-        const workoutOld = await Workout.findByPk({
-            where: {
-                workoutId: practice.workoutId
-            }
-        });
+        const workoutOld = await Workout.findByPk(practice.workoutId);
 
+        const updatedTime = parseInt(time) || 0;
         await workoutOld.update({
-            time: workoutOld.time - practice.time,
+            time: parseInt(workoutOld.time) - parseInt(practice.time),
         });
 
         await workout.update({
-            time: time + workout.time,
+            time: updatedTime + parseInt(workout.time),
         });
 
         await practice.update({
+            name: name,
             description: description,
+            difficulty: difficulty,
             time: time,
             workoutId: workoutId,
         });
@@ -266,14 +304,12 @@ app.delete('/api/practice/:practiceId', async (req, res) => {
             return res.status(404).json({ error: 'Выбранное упражнение не найдено' });
         }
 
-        const workout = await Workout.findByPk({
-            where: {
-                workoutId: practiceToDelete.workoutId
-            }
-        });
+        const workout = await Workout.findByPk(practiceToDelete.workoutId);
+
+        const practiceTime = parseInt(practiceToDelete.time) || 0;
 
         await workout.update({
-            time: workout.time - practiceToDelete.time,
+            time: parseInt(workout.time) - practiceTime,
         });
 
         await practiceToDelete.destroy();

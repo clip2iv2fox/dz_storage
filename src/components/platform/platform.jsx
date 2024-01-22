@@ -12,8 +12,8 @@ const Platform = ({id="", name="", value="", notification="", del}) => {
                 <div className='platform-title'>
                     {name}
                 </div>
-                <div>
-                    мест: {value}
+                <div className='platform-accent'>
+                    {value}
                 </div>
             </div>
             <div className='platform-data'>
@@ -24,9 +24,9 @@ const Platform = ({id="", name="", value="", notification="", del}) => {
                     <i onClick={() => (setOpen(true))} className="fa fa-remove platform-del"></i>
                 </div>
             </div>
-            <Modal isOpen={isOpen} onClose={() => setOpen(false)} title={"Удаление самолёта из бд"}>
+            <Modal isOpen={isOpen} onClose={() => setOpen(false)} title={"Удаление типа упражнения из бд"}>
                 <div className="platform-bottom">
-                    Удаление самолёта приведёт к удалению его данных и рейсов с бронями.
+                    Удаление типа упражнения приведёт к удалению всех данных упражнений, и больше никто не сломает себе спину.
                 </div>
                 <div className="platform-bottom">
                     <Button onClick={() => setOpen(false)}>отмена</Button>

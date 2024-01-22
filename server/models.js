@@ -62,6 +62,10 @@ const Practice = sequelize.define('practice', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    difficulty: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
     time: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -100,4 +104,4 @@ const initializeDatabase = async () => {
 
 initializeDatabase();
 
-module.exports = { Plane, Flight, Booking };
+module.exports = { Exercize, Workout, Practice };
