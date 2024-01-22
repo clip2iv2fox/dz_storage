@@ -6,9 +6,9 @@ const api = axios.create({
     baseURL,
 });
 
-export const getFlightsApi = async () => {
+export const getWorkoutsApi = async () => {
     try {
-        const response = await api.get('/api/flight');
+        const response = await api.get('/api/workout');
         return response.data;
     } catch (error) {
         console.error('Ошибка:' + error);
@@ -16,9 +16,9 @@ export const getFlightsApi = async () => {
     }
 };
 
-export const createFlightApi = async (flightData) => {
+export const createWorkoutApi = async (WorkoutData) => {
     try {
-        const response = await api.post('/api/flight', flightData);
+        const response = await api.post('/api/workout', WorkoutData);
         return response.data;
     } catch (error) {
         console.error('Ошибка:' + error);
@@ -26,9 +26,9 @@ export const createFlightApi = async (flightData) => {
     };
 }
 
-export const updateFlightApi = async (id, flightData) => {
+export const updateWorkoutApi = async (id, WorkoutData) => {
     try {
-        const response = await api.put(`/api/flight/${id}`, flightData);
+        const response = await api.put(`/api/workout/${id}`, WorkoutData);
         return response.data;
     } catch (error) {
         console.error('Ошибка:' + error);
@@ -36,9 +36,9 @@ export const updateFlightApi = async (id, flightData) => {
     }
 };
     
-export const deleteFlightApi = async (id) => {
+export const deleteWorkoutApi = async (id) => {
     try {
-        const response = await api.delete(`/api/flight/${id}`);
+        const response = await api.delete(`/api/workout/${id}`);
         return response.data;
     } catch (error) {
         console.error('Ошибка:' + error);

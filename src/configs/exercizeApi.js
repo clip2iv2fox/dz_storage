@@ -6,9 +6,9 @@ const api = axios.create({
     baseURL,
 });
 
-export const getPlanesApi = async () => {
+export const getExercizesApi = async () => {
     try {
-        const response = await api.get('/api/plane');
+        const response = await api.get('/api/exercize');
         return response.data;
     } catch (error) {
         console.error('Ошибка:' + error);
@@ -16,9 +16,9 @@ export const getPlanesApi = async () => {
     }
 };
 
-export const deletePlaneApi = async (idPlane) => {
+export const deleteExercizeApi = async (idExercize) => {
     try {
-        const response = await api.delete(`/api/plane/${idPlane}`);
+        const response = await api.delete(`/api/exercize/${idExercize}`);
         return response.data;
     } catch (error) {
         console.error('Ошибка:' + error);
@@ -26,9 +26,9 @@ export const deletePlaneApi = async (idPlane) => {
     }
 };
 
-export const createPlaneApi = async (planeData) => {
+export const createExercizeApi = async (ExercizeData) => {
     try {
-        const response = await api.post('/api/plane', planeData);
+        const response = await api.post('/api/exercize', ExercizeData);
         return response.data;
     } catch (error) {
         console.error('Ошибка:' + error);

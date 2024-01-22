@@ -6,27 +6,27 @@ const api = axios.create({
     baseURL,
 });
 
-export const createBookingApi = async (id, bookingData) => {
+export const createPracticeApi = async (id, PracticeData) => {
     try {
-        const response = await api.post(`/api/booking/${id}`, bookingData);
+        await api.post(`/api/practice/${id}`, PracticeData);
     } catch (error) {
         console.error('Ошибка:' + error);
         throw error;
     }
 };
 
-export const updateBookingApi = async (id, bookingData) => {
+export const updatePracticeApi = async (id, PracticeData) => {
     try {
-        const response = await api.put(`/api/booking/${id}`, bookingData);
+        await api.put(`/api/practice/${id}`, PracticeData);
     } catch (error) {
         console.error('Ошибка:' + error);
         throw error;
     }
 };
 
-export const deleteBookingApi = async (id) => {
+export const deletePracticeApi = async (id) => {
     try {
-        const response = await api.delete(`/api/booking/${id}`);
+        await api.delete(`/api/practice/${id}`);
     } catch (error) {
         console.error('Ошибка:' + error);
         throw error;
