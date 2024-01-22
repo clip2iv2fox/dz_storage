@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import "./input.css"
 
-const Input = ({placeholder, input}) => {
+const Input = ({placeholder, input, className}) => {
     const [inputValue, setInputValue] = useState('');
 
     const handleChange = (event) => {
@@ -13,6 +13,7 @@ const Input = ({placeholder, input}) => {
         <input
             type="text"
             id="input"
+            className={className}
             value={inputValue}
             onChange={handleChange}
             placeholder={placeholder}

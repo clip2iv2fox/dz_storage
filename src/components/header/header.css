@@ -6,15 +6,13 @@
     align-items: center;
     padding: 20px;
     margin-bottom: 10px;
-    background: var(--background);
-    background: linear-gradient(0deg, var(--background) 0%, var(--primary) 20%);
 }
 
 .title{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: var(--background);
+    color: var(--text);
 }
 
 .logo {
@@ -37,7 +35,7 @@
 }
 
 .darktheme{
-    color: var(--background);
+    color: var(--text);
     cursor: pointer;
     transition: opacity 0.3s ease;
 }

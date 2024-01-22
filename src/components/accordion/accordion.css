@@ -1,7 +1,7 @@
 @import '../../variables.css';
 
 .accordion {
-  border: 1px solid var(--accent);
+  background-color: var(--primary);
   margin: 10px 25px;
   padding: 10px;
   border-radius: 5px;
@@ -16,11 +16,11 @@
 }
 
 .accordion-header.open {
-  border-bottom: 1px solid var(--accent);
+  border-bottom: 1px solid var(--text);
 }
 
 .arrow {
-  color: var(--accent);
+  color: var(--text);
   margin-left: 20px;
   font-size: 18px;
 }
@@ -42,7 +42,7 @@
   align-items: baseline;
   justify-content: space-between;
   padding: 10px;
-  border-top: 1px solid var(--accent);
+  border-top: 1px solid var(--text);
 }
 
 .accordion-title{

@@ -4,7 +4,7 @@
     padding: 8px 10px;
     font-size: calc(6px + 2vmin);
     background-color: var(--secondary);
-    color: var(--background);
+    color: var(--text);
     border: none;
     margin: 10px;
     border-radius: 5px;
@@ -17,7 +17,8 @@
 }
 
 .button.danger {
-    background-color: var(--accent);
+    color: var(--accent);
+    background-color: var(--background);
 }
 
 .button.default {

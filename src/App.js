@@ -227,7 +227,7 @@ function App() {
               </div>
             </div>
             <div className="platform-bottom">
-              описание: <Input input={(value) => setWorkoutData({ ...workoutData, description: value })} placeholder={"введите описание..."} />
+              описание: <Input input={(value) => setWorkoutData({ ...workoutData, description: value })} className={"description"} placeholder={"введите описание..."} />
             </div>
             <div className="platform-bottom">
               <div className='notification'>{notification}</div>
@@ -247,7 +247,7 @@ function App() {
               </div>
             </div>
             <div className="platform-bottom">
-              описание: <Input input={(value) => setWorkoutData({ ...workoutData, description: value })} placeholder={"введите описание..."} />
+              описание: <Input input={(value) => setWorkoutData({ ...workoutData, description: value })} className={"description"} placeholder={"введите описание..."} />
             </div>
             <div className="platform-bottom">
               <div className='notification'>{notification}</div>
@@ -280,7 +280,7 @@ function App() {
                 </div>
               </div>
               <div className="platform-bottom">
-                описание <Input input={(value) => setPracticeData({ ...practiceData, description: value })} placeholder={"введите описание..."} />
+                описание <Input input={(value) => setPracticeData({ ...practiceData, description: value })} className={"description"} placeholder={"введите описание..."} />
               </div>
               <div className="platform-bottom">
                 <div className='notification'>{notification}</div>
@@ -303,7 +303,7 @@ function App() {
                   </div>
                 </div>
                 <div className="platform-bottom">
-                  описание <Input input={(value) => setPracticeData({ ...practiceData, description: value })} placeholder={"введите описание..."} />
+                  описание <Input input={(value) => setPracticeData({ ...practiceData, description: value })} className={"description"} placeholder={"введите описание..."} />
                 </div>
                 <div className="platform-bottom">
                   <div className='notification'>{notification}</div>
@@ -328,6 +328,24 @@ function App() {
         return (<div>данного модального окна не существует</div>);
     }
   };
+
+  function formatMinutes(minutes) {
+    if (isNaN(minutes) || minutes < 0) {
+      return 'Invalid input';
+    }
+  
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+  
+    const hoursString = hours > 0 ? `${hours} ч.` : '';
+    const minutesString = remainingMinutes > 0 ? `${remainingMinutes} мин.` : '0 мин.';
+  
+    if (hours > 0 && remainingMinutes > 0) {
+      return `${hoursString} ${minutesString}`;
+    } else {
+      return hoursString + minutesString;
+    }
+  }
 
   function truncateString(inputString, maxLength = 8) {
     if (inputString.length <= maxLength) {
@@ -357,7 +375,7 @@ function App() {
               del={() => deleteExercizes(exercize.id)}
             />
           )}
-          <Button onClick={() => (setOpen(true), setCase("Добавить тип тренировки"))}>+ тип</Button>
+          <Button onClick={() => (setOpen(true), setCase("Добавить тип тренировки"))}>+ тип упражнения</Button>
         </div>
         <div className='main'>
           {workouts.map((workout) =>
@@ -367,11 +385,12 @@ function App() {
                 <div className='accordion-right'>
                   <div className='accordion-title'>
                     {workout.name}
+                    <div className="accordion-id">{"ID: " + truncateString(workout.id)}</div>
                   </div>
-                  <div className="accordion-id">{"ID: " + truncateString(workout.id)}</div>
+                  <div className="accordion-id">Описание: {workout.description}</div>
                   <div className='accordion-infos'>
                     <div className='accordion-info'><div className="accordion-id">сложность:</div> {workout.difficulty}</div>
-                    <div className='accordion-info'><div className="accordion-id">время:</div> {workout.time}</div>
+                    <div className='accordion-info'><div className="accordion-id">время:</div> {formatMinutes(parseInt(workout.time))}</div>
                   </div>
                 </div>
               }
@@ -403,7 +422,7 @@ function App() {
                     setCase("Удаление тренировки"),
                     setID(workout.id)
                   )} type={"danger"}>
-                    <i className="fa fa-remove" style={{color: "white", fontSize: "25px"}}></i>
+                    <i className="fa fa-remove"></i>
                   </Button>
                 </div>
               }
@@ -431,7 +450,7 @@ function App() {
                             <td>{practice.name}</td>
                             <td>{practice.description}</td>
                             <td>{findDifficulty(practice.name)}</td>
-                            <td>{practice.time}</td>
+                            <td>{formatMinutes(parseInt(practice.time))}</td>
                             <td className='buttons'>
                               <Button onClick={() => (
                                 setOpen(true),
@@ -444,14 +463,14 @@ function App() {
                                   time: practice.time, 
                                   workoutId: practice.workoutId})
                               )}>
-                                <i className="fa fa-edit" style={{color: "white"}}></i>
+                                <i className="fa fa-edit"></i>
                               </Button>
                               <Button onClick={() => (
                                 setOpen(true),
                                 setCase("Удаление упражнения"),
                                 setID(practice.id)
                               )} type={"danger"}>
-                                <i className="fa fa-remove" style={{color: "white"}}></i>
+                                <i className="fa fa-remove"></i>
                               </Button>
                             </td>
                           </tr>

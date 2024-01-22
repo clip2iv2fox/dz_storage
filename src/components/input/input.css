@@ -1,13 +1,17 @@
 @import '../../variables.css';
 
 input {
-    padding: 10px;
-    margin: 5px;
-    margin-bottom: 10px;
-    box-sizing: border-box;
-    border: 1px solid var(--grey);
-    border-radius: 5px;
-    font-size: 16px;
+  padding: 10px;
+  margin: 5px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  border: 1px solid var(--grey);
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+input.description {
+  width: 100%;
 }
 
 label {
@@ -19,4 +23,3 @@ label {
 p {
   margin-top: 10px;
 }
-  
