@@ -9,11 +9,11 @@
 }
 
 .dark-theme{
-  --primary: #004fa3;
-  --secondary: #7E2553;
-  --accent: #FF004D;
+  --primary: #ff5638;
+  --secondary: #506dff;
+  --accent: #ff0000;
   --background: #1D2B53;
   --text: #ffffff;
-  --border: #1d3557;
+  --border: #ffffff;
   --grey: #cecece;
 }
