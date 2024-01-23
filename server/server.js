@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { Op } = require('sequelize');
-const { Exercize, Workout, Practice } = require('./models');
+const { Order, Product, Item } = require('./models');
 
 const app = express();
 const port = 5000;
@@ -9,84 +9,85 @@ const cors = require('cors');
 app.use(cors());
 app.use(bodyParser.json());
 
-// типы упражнений
-app.post('/api/exercize', async (req, res) => {
+// продукция
+app.get('/api/item', async (req, res) => {
     try {
-        const { name, difficulty } = req.body;
-
-        const exercizeCopy = await Exercize.findOne({
-            where: {
-                name: name
-            }
-        });
-
-        if (exercizeCopy) {
-            return res.status(400).json({ error: 'Такой тип упражнений уже есть' });
-        }
-
-        Exercize.create({
-            name: name || 'неизвестен',
-            difficulty: difficulty || 1,
-        });
-        
-        const exercize = await Exercize.findAll();
-        res.json(exercize);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Ошибка сохранения в базе данных' });
-    }
-});
-
-app.get('/api/exercize', async (req, res) => {
-    try {
-        const exercize = await Exercize.findAll();
-        res.json(exercize);
+        const items = await Item.findAll();
+        res.json(items);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка получения данных из базы данных' });
     }
 });
 
-app.delete('/api/exercize/:exercizeId', async (req, res) => {
+app.post('/api/item', async (req, res) => {
     try {
-        const exercizeId = req.params.exercizeId;
-        const exercizeToDelete = await Exercize.findByPk(exercizeId);
-        if (!exercizeToDelete) {
+        const { name, number } = req.body;
+
+        const itemCopy = await Item.findOne({
+            where: {
+                name: name
+            }
+        });
+
+        if (itemCopy) {
+            return res.status(400).json({ error: 'Такой продукт уже есть' });
+        }
+
+        Item.create({
+            name: name || 'неизвестен',
+            number: number || 1,
+        });
+
+        const items = await Item.findAll();
+        res.json(items);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка сохранения в базе данных' });
+    }
+});
+
+app.delete('/api/item/:itemId', async (req, res) => {
+    try {
+        const itemId = req.params.itemId;
+
+        const itemToDelete = await Item.findByPk(itemId);
+        if (!itemToDelete) {
             return res.status(404).json({ error: 'Тип упражнения не найден' });
         }
 
-        await exercizeToDelete.destroy();
+        await itemToDelete.destroy();
 
-        const exercize = await Exercize.findAll();
-        res.json(exercize);
+        const items = await Item.findAll();
+        res.json(items);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка удаления типа упражнения' });
     }
 });
 
-// тренировки
-app.get('/api/workout', async (req, res) => {
+// заказы
+app.get('/api/order', async (req, res) => {
     try {
-        const workouts = await Workout.findAll({
+        const orders = await Order.findAll({
             include: [{
-                model: Practice,
-                as: 'practices',
+                model: Product,
+                as: 'products',
             }],
         });
 
-        res.json(workouts);
+        res.json(orders);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка получения тренировок' });
     }
 });
 
-app.post('/api/workout', async (req, res) => {
+app.post('/api/order', async (req, res) => {
     try {
-        const { name, description, difficulty } = req.body;
+        const { firstnName, secondName, fatherName, date } = req.body;
 
-        const exercises = await Exercize.findAll();
+        const orders = await Order.findAll();
         const minExerciseDifficulty = Math.max(...exercises.map(exercise => exercise.difficulty));
 
         if (difficulty < minExerciseDifficulty) {

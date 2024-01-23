@@ -5,7 +5,32 @@ const sequelize = new Sequelize({
     storage: './database.sqlite',
 });
 
-const Exercize = sequelize.define('exercize', {
+const Order = sequelize.define('order', {
+    id: {
+        type: DataTypes.UUID,
+        defaultValue: Sequelize.UUIDV4,
+        allowNull: false,
+        primaryKey: true,
+    },
+    firstnName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    secondName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    fatherName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    date: {
+        type: DataTypes.DATE,
+        allowNull: false,
+    },
+});
+
+const Product = sequelize.define('product', {
     id: {
         type: DataTypes.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -16,13 +41,13 @@ const Exercize = sequelize.define('exercize', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    difficulty: {
+    number: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
 });
 
-const Workout = sequelize.define('workout', {
+const Item = sequelize.define('item', {
     id: {
         type: DataTypes.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -33,75 +58,29 @@ const Workout = sequelize.define('workout', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    description: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    difficulty: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-    time: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-});
-
-const Practice = sequelize.define('practice', {
-    id: {
-        type: DataTypes.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
-        primaryKey: true,
-    },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    description: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    difficulty: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-    time: {
+    number: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
 });
 
 // Определение ассоциаций
-Workout.hasMany(Practice, {
-    foreignKey: 'workoutId',
+Order.hasMany(Product, {
+    foreignKey: 'orderId',
     onDelete: 'CASCADE',
 });
-Practice.belongsTo(Workout, {
-    foreignKey: 'workoutId',
+Product.belongsTo(Order, {
+    foreignKey: 'orderId',
     onDelete: 'CASCADE',
 });
 
+Item.hasMany(Product, {
+    foreignKey: 'itemId',
+});
+Product.belongsTo(Item, {
+    foreignKey: 'itemId',
+});
 
-const initializeDatabase = async () => {
-    try {
-        await sequelize.sync();
+sequelize.sync();
 
-        const existingExercizes = await Exercize.findAll();
-
-        if (existingExercizes.length === 0) {
-            const exercizeData = [
-                { name: 'Подъём штанги стоя', difficulty: 8 },
-                { name: 'Приседания', difficulty: 6 },
-            ];
-
-            await Exercize.bulkCreate(exercizeData);
-        }
-    } catch (error) {
-        console.error('Ошибка при инициализации базы данных:', error);
-    }
-};
-
-initializeDatabase();
-
-module.exports = { Exercize, Workout, Practice };
+module.exports = { Order, Product, Item };
