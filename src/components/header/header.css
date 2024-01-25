@@ -4,8 +4,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding: 15px;
     margin-bottom: 10px;
+    background: linear-gradient(90deg, var(--secondary) 20%, var(--primary) 90%);
 }
 
 .title{
