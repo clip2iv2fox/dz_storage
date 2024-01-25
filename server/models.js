@@ -81,6 +81,25 @@ Product.belongsTo(Item, {
     foreignKey: 'itemId',
 });
 
-sequelize.sync();
+const initializeDatabase = async () => {
+    try {
+        await sequelize.sync();
+
+        const existingItems = await Item.findAll();
+
+        if (existingItems.length === 0) {
+            const itemData = [
+                { name: 'Учебник ГДЗ', number: 15 },
+                { name: 'IKiwi', number: 6 },
+            ];
+
+            await Item.bulkCreate(itemData);
+        }
+    } catch (error) {
+        console.error('Ошибка при инициализации базы данных:', error);
+    }
+};
+
+initializeDatabase();
 
 module.exports = { Order, Product, Item };

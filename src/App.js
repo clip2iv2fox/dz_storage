@@ -8,73 +8,61 @@ import Input from './components/input/input';
 import NumInput from './components/input/numInput';
 import Platform from './components/platform/platform';
 import Select from './components/select/select';
-import { getExercizesApi, deleteExercizeApi, createExercizeApi } from './configs/exercizeApi';
-import { createWorkoutApi, deleteWorkoutApi, getWorkoutsApi, updateWorkoutApi } from './configs/workoutApi';
-import { createPracticeApi, deletePracticeApi, updatePracticeApi } from './configs/practiceApi';
+import { getItemsApi, deleteItemApi, createItemApi, updateItemApi } from './configs/itemApi';
+import { createOrderApi, deleteOrderApi, getOrdersApi, updateOrderApi, deleteDayApi } from './configs/orderApi';
+import { createProductApi, deleteProductApi, updateProductApi } from './configs/productApi';
 
 function App() {
-  const [exercizes, setExercizes] = useState([]);
-  const [workouts, setWorkouts] = useState([]);
+  const [items, setItems] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [notification, setNotification] = useState("");
   const [isOpen, setOpen] = useState(false);
   const [isCase, setCase] = useState("");
   const [id, setID] = useState("")
-  const [exercizeData, setExercizeData] = useState({ name: "", difficulty: ""});
-  const [workoutData, setWorkoutData] = useState({ name: "", description: "", difficulty: "", time: ""});
-  const [practiceData, setPracticeData] = useState({name: "", description: "", difficulty: "", time: "", workoutId: ""})
+  const [itemData, setItemData] = useState({ name: "", number: ""});
+  const [orderData, setOrderData] = useState({ firstName: "", secondName: "", fatherName: "", date: ""});
+  const [productData, setProductData] = useState({name: "", number: "", orderId: "", itemId: ""})
 
   useEffect(() => {
-    getExercizes();
-    getWorkouts();
+    getItems();
+    getOrders();
     if (!isOpen) {
       setNotification("")
-      setExercizeData({ name: "", difficulty: ""})
-      setWorkoutData({ name: "", description: "", difficulty: "", time: ""})
-      setPracticeData({name: "", description: "", difficulty: "", time: "", workoutId: ""})
+      setItemData({ name: "", number: ""})
+      setOrderData({ firstName: "", secondName: "", fatherName: "", date: ""})
+      setProductData({name: "", number: "", orderId: "", itemId: ""})
       setID("")
     }
   }, [isOpen]);
 
 
-  const getWorkouts = async () => {
+  const getOrders = async () => {
     try {
-      const response = await getWorkoutsApi();
-      setWorkouts(response);
+      const response = await getOrdersApi();
+      setOrders(response);
     } catch (error) {
       console.error('Ошибка:' + error);
     }
   };
 
-  const getExercizes = async () => {
+  const getItems = async () => {
     try {
-      const response = await getExercizesApi();
-      setExercizes(response);
+      const response = await getItemsApi();
+      setItems(response);
     } catch (error) {
       console.error('Ошибка:' + error);
     }
   };
 
-  const deleteExercizes = async (idExercize) => {
-    try {
-      const response = await deleteExercizeApi(idExercize);
-      setExercizes(response);
-      setOpen(false);
-      getWorkouts();
-      setNotification("");
-    } catch (error) {
-      console.error('Ошибка:' + error);
-    }
-  };
-
-  const createExercizes = async () => {
-    if (exercizeData.name === "" || exercizeData.difficulty === "") {
+  const createItems = async () => {
+    if (itemData.name === "" || itemData.number === "") {
       setNotification("Введены не все данные.");
     } else {
       try {
-        const response = await createExercizeApi(exercizeData);
-        setExercizes(response);
+        const response = await createItemApi(id, itemData);
+        setItems(response);
 
-        setExercizeData({ name: "", difficulty: "" });
+        setItemData({ name: "", number: "" });
         setOpen(false);
       } catch (error) {
         handleError(error);
@@ -82,19 +70,19 @@ function App() {
     }
   };
 
-  const createWorkouts = async () => {
-    if (workoutData.name === "" || workoutData.description === "" || workoutData.difficulty === "") {
+  const createOrders = async () => {
+    if (orderData.name === "" || orderData.description === "" || orderData.difficulty === "") {
       setNotification("Введены не все данные.");
     } else {
       try {
-        const response = await createWorkoutApi({
-          name: workoutData.name,
-          description: workoutData.description,
-          difficulty: workoutData.difficulty
+        const response = await createOrderApi({
+          name: orderData.name,
+          description: orderData.description,
+          difficulty: orderData.difficulty
         });
-        setWorkouts(response);
+        setOrders(response);
 
-        setWorkoutData({name: "", description: "", difficulty: "", time: ""})
+        setOrderData({name: "", description: "", difficulty: "", time: ""})
         setOpen(false);
       } catch (error) {
         handleError(error);
@@ -102,19 +90,19 @@ function App() {
     }
   }
 
-  const redactWorkout = async () => {
-    if (workoutData.name === "" && workoutData.description === "" && workoutData.difficulty === "") {
+  const redactOrder = async () => {
+    if (orderData.name === "" && orderData.description === "" && orderData.difficulty === "") {
       setNotification("Не введены изменения.");
     } else {
       try {
-        const response = await updateWorkoutApi(id, {
-          name: workoutData.name, 
-          description: workoutData.description, 
-          difficulty: workoutData.difficulty,
+        const response = await updateOrderApi(id, {
+          name: orderData.name, 
+          description: orderData.description, 
+          difficulty: orderData.difficulty,
         });
-        setWorkouts(response);
+        setOrders(response);
 
-        setWorkoutData({name: "", description: "", difficulty: "", time: ""})
+        setOrderData({name: "", description: "", difficulty: "", time: ""})
         setID("")
         setOpen(false);
       } catch (error) {
@@ -123,10 +111,10 @@ function App() {
     }
   }
 
-  const deleteWorkout = async () => {
+  const deleteOrder = async () => {
     try {
-      const response = await deleteWorkoutApi(id);
-      setWorkouts(response);
+      const response = await deleteOrderApi(id);
+      setOrders(response);
       setOpen(false);
       setID("")
       setNotification("");
@@ -135,20 +123,20 @@ function App() {
     }
   }
 
-  const createPractice = async () => {
-    if (practiceData.name === "" || practiceData.time === "" || practiceData.description === "") {
-      console.log(practiceData)
+  const createProduct = async () => {
+    if (productData.name === "" || productData.time === "" || productData.description === "") {
+      console.log(productData)
       setNotification("Введены не все данные.");
     } else {
       try {
-        await createPracticeApi(practiceData.workoutId, {
-          name: practiceData.name,
-          description: practiceData.description, 
-          difficulty: practiceData.difficulty,
-          time: practiceData.time
+        await createProductApi(productData.orderId, {
+          name: productData.name,
+          description: productData.description, 
+          difficulty: productData.difficulty,
+          time: productData.time
         });
         setOpen(false);
-        setPracticeData({name: "", description: "", difficulty: "", time: "", workoutId: ""})
+        setProductData({name: "", description: "", difficulty: "", time: "", orderId: ""})
         setNotification("");
       } catch (error) {
         handleError(error);
@@ -156,20 +144,20 @@ function App() {
     }
   };
 
-  const redactPractice = async () => {
-      if (practiceData.name === "" && practiceData.description === "" && practiceData.time === "" && practiceData.workoutId === "") {
+  const redactProduct = async () => {
+      if (productData.name === "" && productData.description === "" && productData.time === "" && productData.orderId === "") {
         setNotification("Введены не все данные.");
       } else {
         try {
-          await updatePracticeApi(id, {
-            name: practiceData.name,
-            description: practiceData.description,
-            difficulty: practiceData.difficulty,
-            time: practiceData.time,
-            workoutId: practiceData.workoutId
+          await updateProductApi(id, {
+            name: productData.name,
+            description: productData.description,
+            difficulty: productData.difficulty,
+            time: productData.time,
+            orderId: productData.orderId
           });
           setOpen(false);
-          setPracticeData({name: "", description: "", difficulty: "", time: "", workoutId: ""})
+          setProductData({name: "", description: "", difficulty: "", time: "", orderId: ""})
           setNotification("");
         } catch (error) {
           handleError(error);
@@ -177,11 +165,11 @@ function App() {
       }
   };
 
-  const deletePractice = async () => {
+  const deleteProduct = async () => {
     try {
-      await deletePracticeApi(id);
+      await deleteProductApi(id);
       setOpen(false);
-      getWorkouts();
+      getOrders();
       setNotification("");
     } catch (error) {
       handleError(error);
@@ -198,20 +186,20 @@ function App() {
 
   const ModalCases = () => {
     switch (isCase) {
-      case "Добавить тип тренировки":
+      case "Добавление товара":
         return (
           <div>
             <div className="platform-bottom">
               <div>
-                Имя: <Input input={(value) => setExercizeData({ ...exercizeData, name: value })} placeholder={"введите название..."} />
+                название: <Input input={(value) => setItemData({ ...itemData, name: value })} placeholder={"введите название..."} />
               </div>
               <div>
-                Сложность: <NumInput input={(value) => setExercizeData({ ...exercizeData, difficulty: value })} min={1} placeholder={"введите сложность..."} />
+                количество: <NumInput input={(value) => setItemData({ ...itemData, number: value })} min={1} placeholder={"введите количество..."} />
               </div>
             </div>
             <div className="platform-bottom">
               <div className='notification'>{notification}</div>
-              <Button onClick={() => createExercizes()}>подтвердить</Button>
+              <Button onClick={() => createItems()}>подтвердить</Button>
             </div>
           </div>
         );
@@ -220,18 +208,18 @@ function App() {
           <div>
             <div className="platform-bottom">
               <div>
-                название: <Input input={(value) => setWorkoutData({ ...workoutData, name: value })} placeholder={"введите название..."}/>
+                название: <Input input={(value) => setOrderData({ ...orderData, name: value })} placeholder={"введите название..."}/>
               </div>
               <div>
-                max сложность: <NumInput input={(value) => setWorkoutData({ ...workoutData, difficulty: value })} min={1} placeholder={"введите max сложность..."}/>
+                max сложность: <NumInput input={(value) => setOrderData({ ...orderData, difficulty: value })} min={1} placeholder={"введите max сложность..."}/>
               </div>
             </div>
             <div className="platform-bottom">
-              описание: <Input input={(value) => setWorkoutData({ ...workoutData, description: value })} className={"description"} placeholder={"введите описание..."} />
+              описание: <Input input={(value) => setOrderData({ ...orderData, description: value })} className={"description"} placeholder={"введите описание..."} />
             </div>
             <div className="platform-bottom">
               <div className='notification'>{notification}</div>
-              <Button onClick={() => createWorkouts()}>подтвердить</Button>
+              <Button onClick={() => createOrders()}>подтвердить</Button>
             </div>
           </div>
         );
@@ -240,18 +228,18 @@ function App() {
           <div>
             <div className="platform-bottom">
               <div>
-                название: <Input input={(value) => setWorkoutData({ ...workoutData, name: value })} placeholder={"введите название..."}/>
+                название: <Input input={(value) => setOrderData({ ...orderData, name: value })} placeholder={"введите название..."}/>
               </div>
               <div>
-                max сложность: <NumInput input={(value) => setWorkoutData({ ...workoutData, difficulty: value })} min={1} placeholder={"введите max сложность..."}/>
+                max сложность: <NumInput input={(value) => setOrderData({ ...orderData, difficulty: value })} min={1} placeholder={"введите max сложность..."}/>
               </div>
             </div>
             <div className="platform-bottom">
-              описание: <Input input={(value) => setWorkoutData({ ...workoutData, description: value })} className={"description"} placeholder={"введите описание..."} />
+              описание: <Input input={(value) => setOrderData({ ...orderData, description: value })} className={"description"} placeholder={"введите описание..."} />
             </div>
             <div className="platform-bottom">
               <div className='notification'>{notification}</div>
-              <Button onClick={() => redactWorkout()}>подтвердить</Button>
+              <Button onClick={() => redactOrder()}>подтвердить</Button>
             </div>
           </div>
         );
@@ -264,7 +252,7 @@ function App() {
                 <div className="platform-bottom">
                     <Button onClick={() => setOpen(false)}>отмена</Button>
                     <div className='notification'>{notification}</div>
-                    <Button onClick={() => deleteWorkout()} type={"danger"}>удалить</Button>
+                    <Button onClick={() => deleteOrder()} type={"danger"}>удалить</Button>
                 </div>
             </div>
           );
@@ -273,18 +261,18 @@ function App() {
             <div>
               <div className="platform-bottom">
                 <div>
-                  тип <Select onSelect={(value) => setPracticeData({ ...practiceData, name: value.name, difficulty: value.difficulty })} options={exercizes}/>
+                  тип <Select onSelect={(value) => setProductData({ ...productData, name: value.name, difficulty: value.difficulty })} options={items}/>
                 </div>
                 <div>
-                  время (мин.) <NumInput input={(value) => setPracticeData({ ...practiceData, time: value })} min={1} placeholder={"введите время..."}/>
+                  время (мин.) <NumInput input={(value) => setProductData({ ...productData, time: value })} min={1} placeholder={"введите время..."}/>
                 </div>
               </div>
               <div className="platform-bottom">
-                описание <Input input={(value) => setPracticeData({ ...practiceData, description: value })} className={"description"} placeholder={"введите описание..."} />
+                описание <Input input={(value) => setProductData({ ...productData, description: value })} className={"description"} placeholder={"введите описание..."} />
               </div>
               <div className="platform-bottom">
                 <div className='notification'>{notification}</div>
-                <Button onClick={() => createPractice()}>подтвердить</Button>
+                <Button onClick={() => createProduct()}>подтвердить</Button>
               </div>
             </div>
           );
@@ -293,21 +281,21 @@ function App() {
               <div>
                 <div className="platform-bottom">
                   <div>
-                    тип <Select onSelect={(value) => setPracticeData({ ...practiceData, name: value.name, difficulty: value.difficulty })} options={exercizes}/>
+                    тип <Select onSelect={(value) => setProductData({ ...productData, name: value.name, difficulty: value.difficulty })} options={items}/>
                   </div>
                   <div>
-                    тренировка <Select onSelect={(value) => setPracticeData({ ...practiceData, workoutId: value.id })} options={workouts}/>
+                    тренировка <Select onSelect={(value) => setProductData({ ...productData, OrderId: value.id })} options={orders}/>
                   </div>
                   <div>
-                    время (мин.) <NumInput input={(value) => setWorkoutData({ ...practiceData, time: value })} min={1} placeholder={"введите время..."}/>
+                    время (мин.) <NumInput input={(value) => setOrderData({ ...orderData, time: value })} min={1} placeholder={"введите время..."}/>
                   </div>
                 </div>
                 <div className="platform-bottom">
-                  описание <Input input={(value) => setPracticeData({ ...practiceData, description: value })} className={"description"} placeholder={"введите описание..."} />
+                  описание <Input input={(value) => setProductData({ ...productData, description: value })} className={"description"} placeholder={"введите описание..."} />
                 </div>
                 <div className="platform-bottom">
                   <div className='notification'>{notification}</div>
-                  <Button onClick={() => redactPractice()}>подтвердить</Button>
+                  <Button onClick={() => redactProduct()}>подтвердить</Button>
                 </div>
               </div>
             );
@@ -320,7 +308,7 @@ function App() {
                   <div className="platform-bottom">
                       <Button onClick={() => setOpen(false)}>отмена</Button>
                       <div className='notification'>{notification}</div>
-                      <Button onClick={() => deletePractice()} type={"danger"}>удалить</Button>
+                      <Button onClick={() => deleteProduct()} type={"danger"}>удалить</Button>
                   </div>
               </div>
             );
@@ -356,41 +344,41 @@ function App() {
   }
 
   function findDifficulty(name) {
-    const Exercize = exercizes.find(item => item.name === name);
-    return Exercize ? Exercize.difficulty : null;
+    const item = items.find(item => item.name === name);
+    return item ? item.difficulty : null;
   }
 
   return (
     <div className="App">
-      <Header />
+      <Header 
+        name='STORAGE'
+        middle={'time'}
+      />
       <div className='App-body'>
         <div className='sidebar'>
-          {exercizes.map((exercize) =>
+          {items.map((item) =>
             <Platform
-              key={exercize.id}
-              id={truncateString(exercize.id)}
-              name={exercize.name}
-              value={exercize.difficulty}
-              notification={notification}
-              del={() => deleteExercizes(exercize.id)}
+              key={item.id}
+              name={item.name}
+              value={item.number}
             />
           )}
-          <Button onClick={() => (setOpen(true), setCase("Добавить тип тренировки"))}>+ тип упражнения</Button>
+          <Button onClick={() => (setOpen(true), setCase("Добавление товара"))}>+ товар</Button>
         </div>
         <div className='main'>
-          {workouts.map((workout) =>
+          {orders.map((order) =>
             <Accordion
-              key={workout.id}
+              key={order.id}
               header={
                 <div className='accordion-right'>
                   <div className='accordion-title'>
-                    {workout.name}
-                    <div className="accordion-id">{"ID: " + truncateString(workout.id)}</div>
+                    {order.name}
+                    <div className="accordion-id">{"ID: " + truncateString(order.id)}</div>
                   </div>
-                  <div className="accordion-id">Описание: {workout.description}</div>
+                  <div className="accordion-id">Описание: {order.description}</div>
                   <div className='accordion-infos'>
-                    <div className='accordion-info'><div className="accordion-id">сложность:</div> {workout.difficulty}</div>
-                    <div className='accordion-info'><div className="accordion-id">время:</div> {formatMinutes(parseInt(workout.time))}</div>
+                    <div className='accordion-info'><div className="accordion-id">сложность:</div> {order.difficulty}</div>
+                    <div className='accordion-info'><div className="accordion-id">время:</div> {formatMinutes(parseInt(order.time))}</div>
                   </div>
                 </div>
               }
@@ -400,27 +388,27 @@ function App() {
                     <Button onClick={() => (
                       setOpen(true),
                       setCase("Редактирование тренировки"),
-                      setWorkoutData({ ...workoutData, 
-                        name: workout.name,
-                        description: workout.description,
-                        difficulty: workout.difficulty,
-                        time: workout.time
+                      setOrderData({ ...orderData, 
+                        name: order.name,
+                        description: order.description,
+                        difficulty: order.difficulty,
+                        time: order.time
                       }),
-                      setID(workout.id)
+                      setID(order.id)
                     )} type={"default"}>
                       редактировать тренировку
                     </Button>
                     <Button onClick={() => (
                       setOpen(true),
                       setCase("Создание упражнения"),
-                      setPracticeData({ ...practiceData, workoutId: workout.id }),
-                      setID(workout.id)
+                      setProductData({ ...productData, orderId: order.id }),
+                      setID(order.id)
                     )}>+ упражнение</Button>
                   </div>
                   <Button onClick={() => (
                     setOpen(true),
                     setCase("Удаление тренировки"),
-                    setID(workout.id)
+                    setID(order.id)
                   )} type={"danger"}>
                     <i className="fa fa-remove"></i>
                   </Button>
@@ -429,7 +417,7 @@ function App() {
             >
               <div className='accordion-body'>
                 {
-                  !workout || !workout.practices || workout.practices.length === 0 ? (
+                  !order || !order.products || order.products.length === 0 ? (
                     <div className='no-accordions'>УПРАЖНЕНИЙ НЕТ</div>
                   ) : (
                     <table className='accordion-table'>
@@ -444,31 +432,31 @@ function App() {
                         </tr>
                       </thead>
                       <tbody>
-                        {workout.practices.map((practice) => (
-                          <tr key={practice.id}>
-                            <td><div className="accordion-id">{truncateString(practice.id)}</div></td>
-                            <td>{practice.name}</td>
-                            <td>{practice.description}</td>
-                            <td>{findDifficulty(practice.name)}</td>
-                            <td>{formatMinutes(parseInt(practice.time))}</td>
+                        {order.products.map((product) => (
+                          <tr key={product.id}>
+                            <td><div className="accordion-id">{truncateString(product.id)}</div></td>
+                            <td>{product.name}</td>
+                            <td>{product.description}</td>
+                            <td>{findDifficulty(product.name)}</td>
+                            <td>{formatMinutes(parseInt(product.time))}</td>
                             <td className='buttons'>
                               <Button onClick={() => (
                                 setOpen(true),
                                 setCase("Редактирование упражнения"),
-                                setID(practice.id),
-                                setPracticeData({ ...practiceData, 
-                                  name: practice.name, 
-                                  description: practice.description, 
-                                  difficulty: practice.difficulty, 
-                                  time: practice.time, 
-                                  workoutId: practice.workoutId})
+                                setID(product.id),
+                                setProductData({ ...productData, 
+                                  name: product.name, 
+                                  description: product.description, 
+                                  difficulty: product.difficulty, 
+                                  time: product.time, 
+                                  orderId: product.orderId})
                               )}>
                                 <i className="fa fa-edit"></i>
                               </Button>
                               <Button onClick={() => (
                                 setOpen(true),
                                 setCase("Удаление упражнения"),
-                                setID(practice.id)
+                                setID(product.id)
                               )} type={"danger"}>
                                 <i className="fa fa-remove"></i>
                               </Button>
@@ -483,7 +471,7 @@ function App() {
             </Accordion>
           )}
           <div className='app-button'>
-            <Button onClick={() => (setOpen(true), setCase("Создать тренировку"))} type={"danger"}>+ тренировка</Button>
+            <Button onClick={() => (setOpen(true), setCase("Создать тренировку"))} type={"danger"}>+ заказ</Button>
           </div>
         </div>
       </div>

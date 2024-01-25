@@ -18,7 +18,8 @@ export const getItemsApi = async () => {
 
 export const createItemApi = async (id, itemData) => {
     try {
-        await api.post(`/api/item/${id}`, itemData);
+        const response = await api.post(`/api/item/${id}`, itemData);
+        return response.data;
     } catch (error) {
         console.error('Ошибка:' + error);
         throw error;
