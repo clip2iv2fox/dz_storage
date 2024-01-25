@@ -16,7 +16,7 @@ app.get('/api/item', async (req, res) => {
         res.json(items);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка получения данных из базы данных' });
+        res.status(500).json({ error: 'Ошибка получения данных' });
     }
 });
 
@@ -53,7 +53,7 @@ app.delete('/api/item/:itemId', async (req, res) => {
 
         const itemToDelete = await Item.findByPk(itemId);
         if (!itemToDelete) {
-            return res.status(404).json({ error: 'Тип упражнения не найден' });
+            return res.status(404).json({ error: 'Продукт не найден' });
         }
 
         await itemToDelete.destroy();
@@ -62,7 +62,7 @@ app.delete('/api/item/:itemId', async (req, res) => {
         res.json(items);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка удаления типа упражнения' });
+        res.status(500).json({ error: 'Ошибка удаления продукта' });
     }
 });
 
@@ -79,263 +79,247 @@ app.get('/api/order', async (req, res) => {
         res.json(orders);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка получения тренировок' });
+        res.status(500).json({ error: 'Ошибка получения заказов' });
     }
 });
 
 app.post('/api/order', async (req, res) => {
     try {
-        const { firstnName, secondName, fatherName, date } = req.body;
+        const { firstName, secondName, fatherName, date } = req.body;
 
-        const orders = await Order.findAll();
-        const minExerciseDifficulty = Math.max(...exercises.map(exercise => exercise.difficulty));
-
-        if (difficulty < minExerciseDifficulty) {
-            return res.status(400).json({ error: 'Сложность тренировки не может быть меньше сложности упражнений' });
-        }
-
-        Workout.create({
-            name: name || "без названия",
-            description: description || "",
-            difficulty: difficulty || 1,
-            time: 0,
+        Order.create({
+            firstName: firstName,
+            secondName: secondName,
+            fatherName: fatherName,
+            date: date,
         });
 
-        const workouts = await Workout.findAll({
+        const orders = await Order.findAll({
             include: [{
-                model: Practice,
-                as: 'practices',
+                model: Product,
+                as: 'products',
             }],
         });
-        res.json(workouts);
+        res.json(orders);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка создания тренировки' });
+        res.status(500).json({ error: 'Ошибка создания заказа' });
     }
 });
 
-app.put('/api/workout/:workoutId', async (req, res) => {
+app.put('/api/order/:orderId', async (req, res) => {
     try {
-        const workoutId = req.params.workoutId;
-        const { name, description, difficulty } = req.body;
+        const orderId = req.params.orderId;
+        const { firstName, secondName, fatherName, date }  = req.body;
 
-        const workout = await Workout.findByPk(workoutId, {
+        const order = await Order.findByPk(orderId, {
             include: [{
-                model: Practice,
-                as: 'practices',
+                model: Product,
+                as: 'products',
             }],
         });
 
-        const exercises = await Exercize.findAll();
-        const minExerciseDifficulty = Math.max(...exercises.map(exercise => exercise.difficulty));
+        await order.update({
+            firstName: firstName,
+            secondName: secondName,
+            fatherName: fatherName,
+            date: date
+        });
 
-        if (difficulty < minExerciseDifficulty) {
-            return res.status(400).json({ error: 'Сложность тренировки не может быть меньше сложности упражнений' });
+        const orders = await Order.findAll({
+            include: [{
+                model: Product,
+                as: 'products',
+            }],
+        });
+        res.json(orders);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка изменения заказа' });
+    }
+});
+
+app.delete('/api/order/:orderId', async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+
+        const orderToDelete = await Order.findByPk(orderId);
+
+        if (!orderToDelete) {
+            return res.status(404).json({ error: 'Заказ не найден' });
         }
 
-        const practiceDifficultySum = (workout.practices || []).reduce((sum, practice) => sum + practice.difficulty, 0);
+        await orderToDelete.destroy();
 
-        if (practiceDifficultySum > difficulty) {
-            return res.status(400).json({ error: 'Тренировка слишком лёгкая для упражнений' });
+        const orders = await Order.findAll({
+            include: [{
+                model: Product,
+                as: 'products',
+            }],
+        });
+        res.json(orders);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка удаления заказа' });
+    }
+});
+
+// товары в заказе
+app.post('/api/product/:orderId', async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+        const { name, number, itemId } = req.body;
+
+        const order = await Order.findByPk(orderId);
+        if (!order) {
+            return res.status(404).json({ error: 'Выбранный заказ не найден' });
         }
 
-        await workout.update({
+        const item = await Item.findByPk(itemId);
+        if (!item) {
+            return res.status(404).json({ error: 'Выбранный товар не найден' });
+        }
+
+        const products = await Product.findAll({
+            where: {
+                itemId: itemId
+            }
+        })
+        const productsSum = (products || []).reduce((sum, product) => {
+            return sum + parseInt(product.number);
+        }, 0);
+
+        if ( productsSum + parseInt(number) > parseInt(item.number) ) {
+            return res.status(400).json({ error: `Параллельный импорт не справился, осталось ${parseInt(item.number) - products} едениц` });
+        }
+
+        Product.create({
             name: name,
-            description: description,
-            difficulty: difficulty,
+            number: number,
+            itemId: itemId,
+            orderId: orderId,
         });
 
-        const workouts = await Workout.findAll({
+        const orders = await Order.findAll({
             include: [{
-                model: Practice,
-                as: 'practices',
+                model: Product,
+                as: 'products',
             }],
         });
-
-        res.json(workouts);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Ошибка изменения тренировки' });
-    }
-});
-
-app.delete('/api/workout/:workoutId', async (req, res) => {
-    try {
-        const workoutId = req.params.workoutId;
-
-        const workoutToDelete = await Workout.findByPk(workoutId);
-
-        if (!workoutToDelete) {
-            return res.status(404).json({ error: 'Тренировка не найдена' });
-        }
-
-        await workoutToDelete.destroy();
-
-        const workouts = await Workout.findAll({
-            include: [{
-                model: Practice,
-                as: 'practices',
-            }],
-        });
-        res.json(workouts);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Ошибка удаления тренировки' });
-    }
-});
-
-// практические упражнения тренировок
-app.post('/api/practice/:workoutId', async (req, res) => {
-    try {
-        const workoutId = req.params.workoutId;
-        const { name, description, difficulty, time } = req.body;
-
-        const workout = await Workout.findByPk(workoutId, {
-            include: [{
-                model: Practice,
-                as: 'practices',
-            }],
-        });
-
-        if (!workout) {
-            return res.status(404).json({ error: 'Выбранная тренировка не найдена' });
-        }
-
-        const practiceDifficultySum = (workout.practices || []).reduce((sum, practice) => sum + practice.difficulty, 0);
-
-        if (practiceDifficultySum + difficulty > workout.difficulty) {
-            return res.status(400).json({ error: 'Тренировка ' + workout.name + ' становится слишком сложная, дядька помрёт' });
-        }
-
-        await Practice.create({
-            name: name,
-            description: description,
-            difficulty: difficulty,
-            time: time,
-            workoutId: workoutId,
-        });
-
-        await workout.update({
-            time: parseInt(time) + parseInt(workout.time),
-        });
-        
-        const workouts = await Workout.findAll({
-            include: [{
-                model: Practice,
-                as: 'practices',
-            }],
-        });
-        res.json(workouts);
+        res.json(orders);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка сохранения в базе данных' });
     }
 });
 
-app.put('/api/practice/:practiceId', async (req, res) => {
+app.put('/api/product/:productId', async (req, res) => {
     try {
-        const practiceId = req.params.practiceId;
-        const { name, description, difficulty, time, workoutId } = req.body;
+        const productId = req.params.productId;
+        const { name, number, orderId } = req.body;
         
-        const practice = await Practice.findByPk(practiceId);
-
-        if (!practice) {
-            return res.status(404).json({ error: 'Выбранное упражнение не найдено' });
+        const productOld = await Product.findByPk(productId);
+        if (!productOld) {
+            return res.status(404).json({ error: 'Выбранный товар не найден' });
         }
 
-        const exercise = await Exercize.findOne({
-            where:{
-                name: name
+        const order = await Order.findByPk(orderId);
+        if (!order) {
+            return res.status(404).json({ error: 'Выбранный заказ не найден' });
+        }
+
+        const item = await Item.findByPk(productOld.itemId);
+        if (!item) {
+            return res.status(404).json({ error: 'Выбранный товар не найден' });
+        }
+
+        const products = await Product.findAll({
+            where: {
+                itemId: productOld.itemId
             }
-        });
-
-        if (!exercise) {
-            return res.status(404).json({ error: 'Выбранн тип не найден' });
-        }
-
-        const workout = await Workout.findByPk(workoutId, {
-            include: [{
-                model: Practice,
-                as: 'practices',
-            }],
-        });
-
-        if (!workout) {
-            return res.status(404).json({ error: 'Выбранная тренировка не найдена' });
-        }
-
-        const practiceDifficultySum = (workout.practices || []).reduce((sum, practice) => {
-            if (practice.id !== practiceId) {
-                return sum + practice.difficulty;
+        })
+        const productsSum = (products || []).reduce((sum, product) => {
+            if (product.id !== productId) {
+                return sum + product.number;
             }
             return sum;
         }, 0);
 
-        if (practiceDifficultySum + practice.difficulty > workout.difficulty) {
-            return res.status(400).json({ error: 'Тренировка ' + workout.name + ' становится слишком сложная, дядька помрёт' });
+        if ( productsSum + parseInt(number) > parseInt(item.number) ) {
+            return res.status(400).json({ error: `Параллельный импорт не справился, осталось ${parseInt(item.number) - products} едениц` });
         }
 
-        const updatedTime = parseInt(time) || 0;
-
-        await workout.update({
-            time: updatedTime + parseInt(workout.time),
-        });
-
-        const workoutOld = await Workout.findByPk(practice.workoutId);
-
-        if (!workoutOld) {
-            return res.status(404).json({ error: 'старая тренировка не найдена' });
-        }
-
-        await workoutOld.update({
-            time: parseInt(workoutOld.time) - parseInt(practice.time),
-        });
-
-        await practice.update({
+        Product.update({
             name: name,
-            description: description,
-            difficulty: difficulty,
-            time: time,
-            workoutId: workoutId,
+            number: number,
+            itemId: productOld.itemId,
+            orderId: orderId,
         });
-        
-        const workouts = await Workout.findAll({
+
+        const orders = await Order.findAll({
             include: [{
-                model: Practice,
-                as: 'practices',
+                model: Product,
+                as: 'products',
             }],
         });
-        res.json(workouts);
+        res.json(orders);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка изменения упражнения' });
+        res.status(500).json({ error: 'Ошибка изменения продукта' });
     }
 });
 
-app.delete('/api/practice/:practiceId', async (req, res) => {
+app.delete('/api/day', async (req, res) => {
     try {
-        const practiceId = req.params.practiceId;
+        const { date } = req.body;
 
-        const practiceToDelete = await Practice.findByPk(practiceId);
-        if (!practiceToDelete) {
-            return res.status(404).json({ error: 'Выбранное упражнение не найдено' });
-        }
-
-        const workout = await Workout.findByPk(practiceToDelete.workoutId);
-
-        const practiceTime = parseInt(practiceToDelete.time) || 0;
-
-        await workout.update({
-            time: parseInt(workout.time) - practiceTime,
+        const orders = await Order.findAll({
+            include: [{
+                model: Product,
+                as: 'products',
+            }],
+            where: {
+                date: {
+                    [Op.lt]: date,
+                },
+            },
         });
+        const items = await Item.findAll();
 
-        await practiceToDelete.destroy();
-        res.json({ message: 'Упражнение успешно удалено' });
+        (orders || []).map((order) => {
+            (order.products || []).map((product) => {
+                minusItem(product.itemId, product.number)
+            })
+        })
+
+        (items || []).map((item) => {
+            plusItem(item.id)
+        })
+
+        res.json({ message: 'День переведён' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка удаления упражнения' });
+        res.status(500).json({ error: 'Ошибка удаления заказов' });
     }
 });
+
+const minusItem = async (id, number) => {
+    const item = await Item.findByPk(id);
+
+    await item.update({
+        number: parseInt(item.number) - parseInt(number)
+    })
+}
+
+const plusItem = async (id) => {
+    const item = await Item.findByPk(id);
+
+    const randomIncrement = Math.floor(Math.random() * 50) + 1;
+
+    await item.update({
+        number: parseInt(item.number) + randomIncrement,
+    });
+}
 
 app.listen(port, () => {
     console.log(`Сервер запущен на порту ${port}`);

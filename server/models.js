@@ -12,7 +12,7 @@ const Order = sequelize.define('order', {
         allowNull: false,
         primaryKey: true,
     },
-    firstnName: {
+    firstName: {
         type: DataTypes.STRING,
         allowNull: false,
     },
