@@ -48,10 +48,10 @@ export const deleteOrderApi = async (id) => {
 
 export const deleteDayApi = async (day) => {
     try {
-        const response = await api.delete(`/api/day`, day);
+        const response = await api.delete('/api/day', { data: { date: day } });
         return response.data;
     } catch (error) {
         console.error('Ошибка:' + error);
         throw error;
     }
-}
+};

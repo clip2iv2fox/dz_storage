@@ -190,7 +190,7 @@ app.post('/api/product/:orderId', async (req, res) => {
         }, 0);
 
         if ( productsSum + parseInt(number) > parseInt(item.number) ) {
-            return res.status(400).json({ error: `Параллельный импорт не справился, осталось ${parseInt(item.number) - products} едениц` });
+            return res.status(400).json({ error: `Параллельный импорт не справился(((` });
         }
 
         Product.create({
@@ -246,13 +246,12 @@ app.put('/api/product/:productId', async (req, res) => {
         }, 0);
 
         if ( productsSum + parseInt(number) > parseInt(item.number) ) {
-            return res.status(400).json({ error: `Параллельный импорт не справился, осталось ${parseInt(item.number) - products} едениц` });
+            return res.status(400).json({ error: `Параллельный импорт не справился(((` });
         }
 
-        Product.update({
+        await productOld.update({
             name: name,
             number: number,
-            itemId: productOld.itemId,
             orderId: orderId,
         });
 
@@ -269,9 +268,30 @@ app.put('/api/product/:productId', async (req, res) => {
     }
 });
 
+app.delete('/api/product/:productId', async (req, res) => {
+    try {
+        const productId = req.params.productId;
+        const product = await Product.findByPk(productId);
+        if (!product) {
+            return res.status(404).json({ error: 'Выбранный товар не найден' });
+        }
+
+        await product.destroy()
+
+        res.json({ message: 'Позиция удалена' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка удаления заказов' });
+    }
+});
+
 app.delete('/api/day', async (req, res) => {
     try {
         const { date } = req.body;
+
+        if (!date || isNaN(Date.parse(date))) {
+            return res.status(400).json({ error: 'Invalid date format' });
+        }
 
         const orders = await Order.findAll({
             include: [{
@@ -280,21 +300,24 @@ app.delete('/api/day', async (req, res) => {
             }],
             where: {
                 date: {
-                    [Op.lt]: date,
+                    [Op.lt]: new Date(date),
                 },
             },
         });
+        console.log(orders)
+
         const items = await Item.findAll();
 
-        (orders || []).map((order) => {
-            (order.products || []).map((product) => {
-                minusItem(product.itemId, product.number)
-            })
-        })
+        for (const order of orders) {
+            for (const product of order.products) {
+                await minusItem(product.itemId, product.number);
+            }
+            await order.destroy();
+        }
 
-        (items || []).map((item) => {
-            plusItem(item.id)
-        })
+        for (const item of items) {
+            await plusItem(item.id);
+        }
 
         res.json({ message: 'День переведён' });
     } catch (error) {
@@ -314,7 +337,7 @@ const minusItem = async (id, number) => {
 const plusItem = async (id) => {
     const item = await Item.findByPk(id);
 
-    const randomIncrement = Math.floor(Math.random() * 50) + 1;
+    const randomIncrement = Math.floor(Math.random() * 10) + 1;
 
     await item.update({
         number: parseInt(item.number) + randomIncrement,
