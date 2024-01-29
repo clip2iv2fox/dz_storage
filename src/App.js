@@ -8,9 +8,10 @@ import Input from './components/input/input';
 import NumInput from './components/input/numInput';
 import Platform from './components/platform/platform';
 import Select from './components/select/select';
-import { getItemsApi, deleteItemApi, createItemApi, updateItemApi } from './configs/itemApi';
+import { getItemsApi, createItemApi } from './configs/itemApi';
 import { createOrderApi, deleteOrderApi, getOrdersApi, updateOrderApi, deleteDayApi } from './configs/orderApi';
 import { createProductApi, deleteProductApi, updateProductApi } from './configs/productApi';
+import DateInput from './components/input/dataInput';
 
 function App() {
   const [items, setItems] = useState([]);
@@ -22,6 +23,8 @@ function App() {
   const [itemData, setItemData] = useState({ name: "", number: ""});
   const [orderData, setOrderData] = useState({ firstName: "", secondName: "", fatherName: "", date: ""});
   const [productData, setProductData] = useState({name: "", number: "", orderId: "", itemId: ""})
+  const [day, setDay] = useState(0)
+  const [today, setToday] = useState(new Date().toISOString().slice(0, 16))
 
   useEffect(() => {
     getItems();
@@ -35,6 +38,22 @@ function App() {
     }
   }, [isOpen]);
 
+  const handleNextDay = async () => {
+    try {
+      setDay(day + 1);
+  
+      const newDate = new Date();
+      newDate.setDate(newDate.getDate() + day);
+      const newToday = newDate.toISOString().slice(0, 16);
+      setToday(newToday);
+  
+      await deleteDayApi(newToday);
+      getItems();
+      getOrders();
+    } catch (error) {
+      console.error('Ошибка:' + error);
+    }
+  };
 
   const getOrders = async () => {
     try {
@@ -71,18 +90,19 @@ function App() {
   };
 
   const createOrders = async () => {
-    if (orderData.name === "" || orderData.description === "" || orderData.difficulty === "") {
+    if (orderData.firstName === "" || orderData.secondName === "" || orderData.fatherName === "" || orderData.date === "") {
       setNotification("Введены не все данные.");
     } else {
       try {
         const response = await createOrderApi({
-          name: orderData.name,
-          description: orderData.description,
-          difficulty: orderData.difficulty
+          firstName: orderData.firstName,
+          secondName: orderData.secondName,
+          fatherName: orderData.fatherName,
+          date: orderData.date,
         });
         setOrders(response);
 
-        setOrderData({name: "", description: "", difficulty: "", time: ""})
+        setOrderData({ firstName: "", secondName: "", fatherName: "", date: ""})
         setOpen(false);
       } catch (error) {
         handleError(error);
@@ -91,18 +111,19 @@ function App() {
   }
 
   const redactOrder = async () => {
-    if (orderData.name === "" && orderData.description === "" && orderData.difficulty === "") {
+    if (orderData.firstName === "" || orderData.secondName === "" || orderData.fatherName === "" || orderData.date === "") {
       setNotification("Не введены изменения.");
     } else {
       try {
         const response = await updateOrderApi(id, {
-          name: orderData.name, 
-          description: orderData.description, 
-          difficulty: orderData.difficulty,
+          firstName: orderData.firstName,
+          secondName: orderData.secondName,
+          fatherName: orderData.fatherName,
+          date: orderData.date,
         });
         setOrders(response);
 
-        setOrderData({name: "", description: "", difficulty: "", time: ""})
+        setOrderData({ firstName: "", secondName: "", fatherName: "", date: ""})
         setID("")
         setOpen(false);
       } catch (error) {
@@ -124,16 +145,15 @@ function App() {
   }
 
   const createProduct = async () => {
-    if (productData.name === "" || productData.time === "" || productData.description === "") {
+    if (productData.name === "" || productData.number === "") {
       console.log(productData)
       setNotification("Введены не все данные.");
     } else {
       try {
-        await createProductApi(productData.orderId, {
+        await createProductApi(id, {
           name: productData.name,
-          description: productData.description, 
-          difficulty: productData.difficulty,
-          time: productData.time
+          number: productData.number, 
+          itemId: productData.itemId,
         });
         setOpen(false);
         setProductData({name: "", description: "", difficulty: "", time: "", orderId: ""})
@@ -145,19 +165,17 @@ function App() {
   };
 
   const redactProduct = async () => {
-      if (productData.name === "" && productData.description === "" && productData.time === "" && productData.orderId === "") {
+      if (productData.name === "" || productData.number === "" || productData.orderId === "") {
         setNotification("Введены не все данные.");
       } else {
         try {
           await updateProductApi(id, {
             name: productData.name,
-            description: productData.description,
-            difficulty: productData.difficulty,
-            time: productData.time,
-            orderId: productData.orderId
+            number: productData.number,
+            orderId: productData.orderId,
           });
           setOpen(false);
-          setProductData({name: "", description: "", difficulty: "", time: "", orderId: ""})
+          setProductData({name: "", number: "", orderId: "", itemId: ""})
           setNotification("");
         } catch (error) {
           handleError(error);
@@ -203,19 +221,24 @@ function App() {
             </div>
           </div>
         );
-      case "Создать тренировку":
+      case "Создать заказ":
         return (
           <div>
             <div className="platform-bottom">
               <div>
-                название: <Input input={(value) => setOrderData({ ...orderData, name: value })} placeholder={"введите название..."}/>
+                Имя: <Input input={(value) => setOrderData({ ...orderData, firstName: value })} placeholder={"введите название..."}/>
               </div>
               <div>
-                max сложность: <NumInput input={(value) => setOrderData({ ...orderData, difficulty: value })} min={1} placeholder={"введите max сложность..."}/>
+                Фамилия: <Input input={(value) => setOrderData({ ...orderData, secondName: value })} placeholder={"введите название..."}/>
+              </div>
+              <div>
+                Отчество: <Input input={(value) => setOrderData({ ...orderData, fatherName: value })} placeholder={"введите название..."}/>
               </div>
             </div>
             <div className="platform-bottom">
-              описание: <Input input={(value) => setOrderData({ ...orderData, description: value })} className={"description"} placeholder={"введите описание..."} />
+              <div>
+                Дата отправки: <DateInput input={(value) => setOrderData({ ...orderData, date: value })}/>
+              </div>
             </div>
             <div className="platform-bottom">
               <div className='notification'>{notification}</div>
@@ -223,19 +246,24 @@ function App() {
             </div>
           </div>
         );
-      case "Редактирование тренировки":
+      case "Редактирование заказа":
         return (
           <div>
             <div className="platform-bottom">
               <div>
-                название: <Input input={(value) => setOrderData({ ...orderData, name: value })} placeholder={"введите название..."}/>
+                Имя: <Input input={(value) => setOrderData({ ...orderData, firstName: value })} placeholder={orderData.firstName}/>
               </div>
               <div>
-                max сложность: <NumInput input={(value) => setOrderData({ ...orderData, difficulty: value })} min={1} placeholder={"введите max сложность..."}/>
+                Фамилия: <Input input={(value) => setOrderData({ ...orderData, secondName: value })} placeholder={orderData.secondName}/>
+              </div>
+              <div>
+                Отчество: <Input input={(value) => setOrderData({ ...orderData, fatherName: value })} placeholder={orderData.fatherName}/>
               </div>
             </div>
             <div className="platform-bottom">
-              описание: <Input input={(value) => setOrderData({ ...orderData, description: value })} className={"description"} placeholder={"введите описание..."} />
+              <div>
+                Дата отправки: <DateInput input={(value) => setOrderData({ ...orderData, date: value })}/>
+              </div>
             </div>
             <div className="platform-bottom">
               <div className='notification'>{notification}</div>
@@ -243,11 +271,11 @@ function App() {
             </div>
           </div>
         );
-        case "Удаление тренировки":
+        case "Удаление заказа":
           return (
             <div>
               <div className="platform-bottom">
-                    Удаление тренировки приведёт к удалению его данных и упражнений.
+                    Удаление заказа приведёт к удалению его данных (кто-то не получит игрушки).
                 </div>
                 <div className="platform-bottom">
                     <Button onClick={() => setOpen(false)}>отмена</Button>
@@ -256,19 +284,16 @@ function App() {
                 </div>
             </div>
           );
-        case "Создание упражнения":
+        case "Создание позиции в заказе":
           return (
             <div>
               <div className="platform-bottom">
                 <div>
-                  тип <Select onSelect={(value) => setProductData({ ...productData, name: value.name, difficulty: value.difficulty })} options={items}/>
+                  продукт <Select onSelect={(value) => setProductData({ ...productData, name: value.name, itemId: value.id })} options={items}/>
                 </div>
                 <div>
-                  время (мин.) <NumInput input={(value) => setProductData({ ...productData, time: value })} min={1} placeholder={"введите время..."}/>
+                  количество <NumInput input={(value) => setProductData({ ...productData, number: value })} min={1} placeholder={"введите количество..."}/>
                 </div>
-              </div>
-              <div className="platform-bottom">
-                описание <Input input={(value) => setProductData({ ...productData, description: value })} className={"description"} placeholder={"введите описание..."} />
               </div>
               <div className="platform-bottom">
                 <div className='notification'>{notification}</div>
@@ -276,22 +301,16 @@ function App() {
               </div>
             </div>
           );
-          case "Редактирование упражнения":
+          case "Редактирование позиции":
             return (
               <div>
                 <div className="platform-bottom">
                   <div>
-                    тип <Select onSelect={(value) => setProductData({ ...productData, name: value.name, difficulty: value.difficulty })} options={items}/>
+                    заказ <Select onSelect={(value) => setProductData({ ...productData, orderId: value.id })} options={transformJsonArray(orders)}/>
                   </div>
                   <div>
-                    тренировка <Select onSelect={(value) => setProductData({ ...productData, OrderId: value.id })} options={orders}/>
+                    количество <NumInput input={(value) => setProductData({ ...productData, number: value })} min={1} placeholder={productData.number}/>
                   </div>
-                  <div>
-                    время (мин.) <NumInput input={(value) => setOrderData({ ...orderData, time: value })} min={1} placeholder={"введите время..."}/>
-                  </div>
-                </div>
-                <div className="platform-bottom">
-                  описание <Input input={(value) => setProductData({ ...productData, description: value })} className={"description"} placeholder={"введите описание..."} />
                 </div>
                 <div className="platform-bottom">
                   <div className='notification'>{notification}</div>
@@ -299,11 +318,11 @@ function App() {
                 </div>
               </div>
             );
-          case "Удаление упражнения":
+          case "Удаление позиции":
             return (
               <div>
                 <div className="platform-bottom">
-                      Вы уверены, что хотите удалить упражнение?
+                      Вы уверены, что хотите удалить позицию?
                   </div>
                   <div className="platform-bottom">
                       <Button onClick={() => setOpen(false)}>отмена</Button>
@@ -317,22 +336,33 @@ function App() {
     }
   };
 
-  function formatMinutes(minutes) {
-    if (isNaN(minutes) || minutes < 0) {
-      return 'Invalid input';
-    }
+  const formatDate = (inputDate) => {
+    const date = new Date(inputDate);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
   
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-  
-    const hoursString = hours > 0 ? `${hours} ч.` : '';
-    const minutesString = remainingMinutes > 0 ? `${remainingMinutes} мин.` : '0 мин.';
-  
-    if (hours > 0 && remainingMinutes > 0) {
-      return `${hoursString} ${minutesString}`;
-    } else {
-      return hoursString + minutesString;
-    }
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const transformJsonArray = (jsonArray) => {
+    return jsonArray.map(({ id, firstName, secondName, fatherName, date }) => ({
+        id,
+        name: `${firstName} ${secondName} ${fatherName}`,
+        date,
+    }));
+  };
+
+  function formatDateTime(dateTimeString) {
+    const dateTime = new Date(dateTimeString);
+    
+    const day = dateTime.getDate().toString().padStart(2, '0');
+    const month = (dateTime.getMonth() + 1).toString().padStart(2, '0');
+    const year = dateTime.getFullYear().toString().slice(2);
+
+    return `${day}.${month}.${year}`;
   }
 
   function truncateString(inputString, maxLength = 8) {
@@ -343,16 +373,16 @@ function App() {
     }
   }
 
-  function findDifficulty(name) {
-    const item = items.find(item => item.name === name);
-    return item ? item.difficulty : null;
-  }
-
   return (
     <div className="App">
       <Header 
         name='STORAGE'
-        middle={'time'}
+        middle={
+          <div>
+            {formatDateTime(today)}
+            <Button onClick={() => handleNextDay()}>+ день</Button>
+          </div>
+        }
       />
       <div className='App-body'>
         <div className='sidebar'>
@@ -372,13 +402,11 @@ function App() {
               header={
                 <div className='accordion-right'>
                   <div className='accordion-title'>
-                    {order.name}
-                    <div className="accordion-id">{"ID: " + truncateString(order.id)}</div>
+                    {order.firstName + " " + order.secondName + " " + order.fatherName}
                   </div>
-                  <div className="accordion-id">Описание: {order.description}</div>
+                  <div className="accordion-id">{"ID: " + truncateString(order.id)}</div>
                   <div className='accordion-infos'>
-                    <div className='accordion-info'><div className="accordion-id">сложность:</div> {order.difficulty}</div>
-                    <div className='accordion-info'><div className="accordion-id">время:</div> {formatMinutes(parseInt(order.time))}</div>
+                    <div className='accordion-info'><div className="accordion-id">время отправки:</div> {formatDateTime(order.date)}</div>
                   </div>
                 </div>
               }
@@ -387,27 +415,27 @@ function App() {
                   <div>
                     <Button onClick={() => (
                       setOpen(true),
-                      setCase("Редактирование тренировки"),
+                      setCase("Редактирование заказа"),
                       setOrderData({ ...orderData, 
-                        name: order.name,
-                        description: order.description,
-                        difficulty: order.difficulty,
-                        time: order.time
+                        firstName: order.firstName,
+                        secondName: order.secondName,
+                        fatherName: order.fatherName,
+                        date: order.date
                       }),
                       setID(order.id)
                     )} type={"default"}>
-                      редактировать тренировку
+                      редактировать заказ
                     </Button>
                     <Button onClick={() => (
                       setOpen(true),
-                      setCase("Создание упражнения"),
+                      setCase("Создание позиции в заказе"),
                       setProductData({ ...productData, orderId: order.id }),
                       setID(order.id)
-                    )}>+ упражнение</Button>
+                    )}>+ позиция в заказе</Button>
                   </div>
                   <Button onClick={() => (
                     setOpen(true),
-                    setCase("Удаление тренировки"),
+                    setCase("Удаление заказа"),
                     setID(order.id)
                   )} type={"danger"}>
                     <i className="fa fa-remove"></i>
@@ -418,16 +446,14 @@ function App() {
               <div className='accordion-body'>
                 {
                   !order || !order.products || order.products.length === 0 ? (
-                    <div className='no-accordions'>УПРАЖНЕНИЙ НЕТ</div>
+                    <div className='no-accordions'>ПОЗИЦИЙ НЕТ</div>
                   ) : (
                     <table className='accordion-table'>
                       <thead>
                         <tr>
                           <th>ID</th>
                           <th>Название</th>
-                          <th>Описание</th>
-                          <th>Сложность</th>
-                          <th>Время</th>
+                          <th>Количество</th>
                           <th></th>
                         </tr>
                       </thead>
@@ -436,26 +462,24 @@ function App() {
                           <tr key={product.id}>
                             <td><div className="accordion-id">{truncateString(product.id)}</div></td>
                             <td>{product.name}</td>
-                            <td>{product.description}</td>
-                            <td>{findDifficulty(product.name)}</td>
-                            <td>{formatMinutes(parseInt(product.time))}</td>
+                            <td>{product.number}</td>
                             <td className='buttons'>
                               <Button onClick={() => (
                                 setOpen(true),
-                                setCase("Редактирование упражнения"),
+                                setCase("Редактирование позиции"),
                                 setID(product.id),
                                 setProductData({ ...productData, 
-                                  name: product.name, 
-                                  description: product.description, 
-                                  difficulty: product.difficulty, 
-                                  time: product.time, 
-                                  orderId: product.orderId})
+                                  name: product.name,
+                                  number: product.number,
+                                  orderId: product.orderId,
+                                  itemId: product.itemId
+                                })
                               )}>
                                 <i className="fa fa-edit"></i>
                               </Button>
                               <Button onClick={() => (
                                 setOpen(true),
-                                setCase("Удаление упражнения"),
+                                setCase("Удаление позиции"),
                                 setID(product.id)
                               )} type={"danger"}>
                                 <i className="fa fa-remove"></i>
@@ -471,7 +495,11 @@ function App() {
             </Accordion>
           )}
           <div className='app-button'>
-            <Button onClick={() => (setOpen(true), setCase("Создать тренировку"))} type={"danger"}>+ заказ</Button>
+            <Button onClick={() => (
+              setOpen(true),
+              setCase("Создать заказ"),
+              setOrderData({ firstName: "", secondName: "", fatherName: "", date: ""})
+            )} type={"danger"}>+ заказ</Button>
           </div>
         </div>
       </div>
