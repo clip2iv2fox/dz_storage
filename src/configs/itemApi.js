@@ -25,21 +25,3 @@ export const createItemApi = async (id, itemData) => {
         throw error;
     }
 };
-
-export const updateItemApi = async (id, itemData) => {
-    try {
-        await api.put(`/api/item/${id}`, itemData);
-    } catch (error) {
-        console.error('Ошибка:' + error);
-        throw error;
-    }
-};
-
-export const deleteItemApi = async (id) => {
-    try {
-        await api.delete(`/api/item/${id}`);
-    } catch (error) {
-        console.error('Ошибка:' + error);
-        throw error;
-    }
-};

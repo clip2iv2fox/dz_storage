@@ -12,15 +12,12 @@ const Header = ({name, middle}) => {
   return (
     <div className="header">
       <div className="title">
-        <i className='fa fa-archive' style={{fontSize: '35px', color:'white', marginRight: '15px'}}></i>
+        <i className='fa fa-dropbox icon'></i>
         {name}
       </div>
       {middle}
       <div className='header-right'>
         <i onClick={() => toggleDarkMode()} className={dark ? 'fa fa-moon-o darktheme' : 'fa fa-sun-o darktheme'}></i>
-        <div className="icon">
-          <i className='fa fa-archive' style={{fontSize: '25px', color:'white', opacity: '70%'}}></i>
-        </div>
       </div>
     </div>
   );

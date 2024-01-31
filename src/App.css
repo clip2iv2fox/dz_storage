@@ -16,10 +16,10 @@
 }
 
 .sidebar {
-  width: 25vw;
+  width: 20vw;
   min-height: 100%;
   padding: 0 10px;
-  border-right: var(--secondary) solid 2px;
+  border-right: 2px solid var(--secondary);
 }
 
 .main {

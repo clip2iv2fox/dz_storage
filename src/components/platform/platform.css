@@ -7,8 +7,9 @@
     align-items: center;
     padding: 10px;
     margin: 10px;
-    background-color: var(--secondary);
+    background-color: none;
     border-radius: 5px;
+    border: solid 2px var(--secondary);
 }
 
 .platform-title{

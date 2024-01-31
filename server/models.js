@@ -5,7 +5,7 @@ const sequelize = new Sequelize({
     storage: './database.sqlite',
 });
 
-const Order = sequelize.define('order', {
+const Reservation = sequelize.define('reservation', {
     id: {
         type: DataTypes.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -30,7 +30,7 @@ const Order = sequelize.define('order', {
     },
 });
 
-const Product = sequelize.define('product', {
+const Good = sequelize.define('good', {
     id: {
         type: DataTypes.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -65,19 +65,19 @@ const Item = sequelize.define('item', {
 });
 
 // Определение ассоциаций
-Order.hasMany(Product, {
-    foreignKey: 'orderId',
+Reservation.hasMany(Good, {
+    foreignKey: 'reservationId',
     onDelete: 'CASCADE',
 });
-Product.belongsTo(Order, {
-    foreignKey: 'orderId',
+Good.belongsTo(Reservation, {
+    foreignKey: 'reservationId',
     onDelete: 'CASCADE',
 });
 
-Item.hasMany(Product, {
+Item.hasMany(Good, {
     foreignKey: 'itemId',
 });
-Product.belongsTo(Item, {
+Good.belongsTo(Item, {
     foreignKey: 'itemId',
 });
 
@@ -89,17 +89,18 @@ const initializeDatabase = async () => {
 
         if (existingItems.length === 0) {
             const itemData = [
-                { name: 'Учебник ГДЗ', number: 15 },
-                { name: 'IKiwi', number: 6 },
+                { name: 'Машинка игровая', number: 5 },
+                { name: 'Телефон', number: 1 },
+                { name: 'Вертолётик', number: 3 },
             ];
 
             await Item.bulkCreate(itemData);
         }
     } catch (error) {
-        console.error('Ошибка при инициализации базы данных:', error);
+        console.error('Ошибка при создании бд:', error);
     }
 };
 
 initializeDatabase();
 
-module.exports = { Order, Product, Item };
+module.exports = { Reservation, Good, Item };

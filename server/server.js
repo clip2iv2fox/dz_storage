@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { Op } = require('sequelize');
-const { Order, Product, Item } = require('./models');
+const { Reservation, Good, Item } = require('./models');
 
 const app = express();
 const port = 5000;
@@ -16,7 +16,7 @@ app.get('/api/item', async (req, res) => {
         res.json(items);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка получения данных' });
+        res.status(500).json({ error: 'Ошибка связи с бд' });
     }
 });
 
@@ -31,133 +31,114 @@ app.post('/api/item', async (req, res) => {
         });
 
         if (itemCopy) {
-            return res.status(400).json({ error: 'Такой продукт уже есть' });
+            return res.status(400).json({ error: 'Такой продукт уже на складе' });
         }
 
         Item.create({
-            name: name || 'неизвестен',
-            number: number || 1,
+            name: name || 'NaN',
+            number: number || 0,
         });
 
         const items = await Item.findAll();
         res.json(items);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка сохранения в базе данных' });
-    }
-});
-
-app.delete('/api/item/:itemId', async (req, res) => {
-    try {
-        const itemId = req.params.itemId;
-
-        const itemToDelete = await Item.findByPk(itemId);
-        if (!itemToDelete) {
-            return res.status(404).json({ error: 'Продукт не найден' });
-        }
-
-        await itemToDelete.destroy();
-
-        const items = await Item.findAll();
-        res.json(items);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Ошибка удаления продукта' });
+        res.status(500).json({ error: 'Ошибка связи с бд' });
     }
 });
 
 // заказы
-app.get('/api/order', async (req, res) => {
+app.get('/api/reservation', async (req, res) => {
     try {
-        const orders = await Order.findAll({
+        const reservations = await Reservation.findAll({
             include: [{
-                model: Product,
-                as: 'products',
+                model: Good,
+                as: 'goods',
             }],
         });
 
-        res.json(orders);
+        res.json(reservations);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка получения заказов' });
+        res.status(500).json({ error: 'Ошибка связи с бд' });
     }
 });
 
-app.post('/api/order', async (req, res) => {
+app.post('/api/reservation', async (req, res) => {
     try {
         const { firstName, secondName, fatherName, date } = req.body;
 
-        Order.create({
+        Reservation.create({
             firstName: firstName,
             secondName: secondName,
             fatherName: fatherName,
             date: date,
         });
 
-        const orders = await Order.findAll({
+        const reservations = await Reservation.findAll({
             include: [{
-                model: Product,
-                as: 'products',
+                model: Good,
+                as: 'goods',
             }],
         });
-        res.json(orders);
+        res.json(reservations);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка создания заказа' });
     }
 });
 
-app.put('/api/order/:orderId', async (req, res) => {
+app.put('/api/reservation/:reservationId', async (req, res) => {
     try {
-        const orderId = req.params.orderId;
+        const reservationId = req.params.reservationId;
         const { firstName, secondName, fatherName, date }  = req.body;
 
-        const order = await Order.findByPk(orderId, {
+        const reservation = await Reservation.findByPk(reservationId, {
             include: [{
-                model: Product,
-                as: 'products',
+                model: Good,
+                as: 'goods',
             }],
         });
 
-        await order.update({
+        await reservation.update({
             firstName: firstName,
             secondName: secondName,
             fatherName: fatherName,
             date: date
         });
 
-        const orders = await Order.findAll({
+        const reservations = await Reservation.findAll({
             include: [{
-                model: Product,
-                as: 'products',
+                model: Good,
+                as: 'goods',
             }],
         });
-        res.json(orders);
+        res.json(reservations);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка изменения заказа' });
     }
 });
 
-app.delete('/api/order/:orderId', async (req, res) => {
+app.delete('/api/reservation/:reservationId', async (req, res) => {
     try {
-        const orderId = req.params.orderId;
+        const reservationId = req.params.reservationId;
 
-        const orderToDelete = await Order.findByPk(orderId);
+        const reservationToDelete = await Reservation.findByPk(reservationId);
 
-        if (!orderToDelete) {
-            return res.status(404).json({ error: 'Заказ не найден' });
+        if (!reservationToDelete) {
+            return res.status(404).json({ error: 'Такого заказа нет' });
         }
 
-        await orderToDelete.destroy();
+        await reservationToDelete.destroy();
 
-        const orders = await Order.findAll({
+        const reservations = await Reservation.findAll({
             include: [{
-                model: Product,
-                as: 'products',
+                model: Good,
+                as: 'goods',
             }],
         });
-        res.json(orders);
+        res.json(reservations);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка удаления заказа' });
@@ -165,123 +146,123 @@ app.delete('/api/order/:orderId', async (req, res) => {
 });
 
 // товары в заказе
-app.post('/api/product/:orderId', async (req, res) => {
+app.post('/api/good/:reservationId', async (req, res) => {
     try {
-        const orderId = req.params.orderId;
+        const reservationId = req.params.reservationId;
         const { name, number, itemId } = req.body;
 
-        const order = await Order.findByPk(orderId);
-        if (!order) {
-            return res.status(404).json({ error: 'Выбранный заказ не найден' });
+        const reservation = await Reservation.findByPk(reservationId);
+        if (!reservation) {
+            return res.status(404).json({ error: 'Выбранного заказа нет' });
         }
 
         const item = await Item.findByPk(itemId);
         if (!item) {
-            return res.status(404).json({ error: 'Выбранный товар не найден' });
+            return res.status(404).json({ error: 'Выбранного товара нет' });
         }
 
-        const products = await Product.findAll({
+        const goods = await Good.findAll({
             where: {
                 itemId: itemId
             }
         })
-        const productsSum = (products || []).reduce((sum, product) => {
-            return sum + parseInt(product.number);
+        const goodsSum = (goods || []).reduce((sum, good) => {
+            return sum + parseInt(good.number);
         }, 0);
 
-        if ( productsSum + parseInt(number) > parseInt(item.number) ) {
-            return res.status(400).json({ error: `Параллельный импорт не справился(((` });
+        if ( goodsSum + parseInt(number) > parseInt(item.number) ) {
+            return res.status(400).json({ error: `Недостаточно продукции на складе` });
         }
 
-        Product.create({
+        Good.create({
             name: name,
             number: number,
             itemId: itemId,
-            orderId: orderId,
+            reservationId: reservationId,
         });
 
-        const orders = await Order.findAll({
+        const reservations = await Reservation.findAll({
             include: [{
-                model: Product,
-                as: 'products',
+                model: Good,
+                as: 'goods',
             }],
         });
-        res.json(orders);
+        res.json(reservations);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка сохранения в базе данных' });
+        res.status(500).json({ error: 'Ошибка связи с бд' });
     }
 });
 
-app.put('/api/product/:productId', async (req, res) => {
+app.put('/api/good/:goodId', async (req, res) => {
     try {
-        const productId = req.params.productId;
-        const { name, number, orderId } = req.body;
+        const goodId = req.params.goodId;
+        const { name, number, reservationId } = req.body;
         
-        const productOld = await Product.findByPk(productId);
-        if (!productOld) {
-            return res.status(404).json({ error: 'Выбранный товар не найден' });
+        const goodOld = await Good.findByPk(goodId);
+        if (!goodOld) {
+            return res.status(404).json({ error: 'Выбранного товара' });
         }
 
-        const order = await Order.findByPk(orderId);
-        if (!order) {
-            return res.status(404).json({ error: 'Выбранный заказ не найден' });
+        const reservation = await Reservation.findByPk(reservationId);
+        if (!reservation) {
+            return res.status(404).json({ error: 'Выбранного заказа нет' });
         }
 
-        const item = await Item.findByPk(productOld.itemId);
+        const item = await Item.findByPk(goodOld.itemId);
         if (!item) {
-            return res.status(404).json({ error: 'Выбранный товар не найден' });
+            return res.status(404).json({ error: 'Выбранного товара нет' });
         }
 
-        const products = await Product.findAll({
+        const goods = await Good.findAll({
             where: {
-                itemId: productOld.itemId
+                itemId: goodOld.itemId
             }
         })
-        const productsSum = (products || []).reduce((sum, product) => {
-            if (product.id !== productId) {
-                return sum + product.number;
+        const goodsSum = (goods || []).reduce((sum, good) => {
+            if (good.id !== goodId) {
+                return sum + good.number;
             }
             return sum;
         }, 0);
 
-        if ( productsSum + parseInt(number) > parseInt(item.number) ) {
-            return res.status(400).json({ error: `Параллельный импорт не справился(((` });
+        if ( goodsSum + parseInt(number) > parseInt(item.number) ) {
+            return res.status(400).json({ error: `Недостаточно продукции на складе` });
         }
 
-        await productOld.update({
+        await goodOld.update({
             name: name,
             number: number,
-            orderId: orderId,
+            reservationId: reservationId,
         });
 
-        const orders = await Order.findAll({
+        const reservations = await Reservation.findAll({
             include: [{
-                model: Product,
-                as: 'products',
+                model: Good,
+                as: 'goods',
             }],
         });
-        res.json(orders);
+        res.json(reservations);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка изменения продукта' });
     }
 });
 
-app.delete('/api/product/:productId', async (req, res) => {
+app.delete('/api/good/:goodId', async (req, res) => {
     try {
-        const productId = req.params.productId;
-        const product = await Product.findByPk(productId);
-        if (!product) {
-            return res.status(404).json({ error: 'Выбранный товар не найден' });
+        const goodId = req.params.goodId;
+        const good = await Good.findByPk(goodId);
+        if (!good) {
+            return res.status(404).json({ error: 'Выбранного товара нет' });
         }
 
-        await product.destroy()
+        await good.destroy()
 
-        res.json({ message: 'Позиция удалена' });
+        res.json({ message: 'Товар удалена' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка удаления заказов' });
+        res.status(500).json({ error: 'Ошибка удаления товара' });
     }
 });
 
@@ -290,13 +271,13 @@ app.delete('/api/day', async (req, res) => {
         const { date } = req.body;
 
         if (!date || isNaN(Date.parse(date))) {
-            return res.status(400).json({ error: 'Invalid date format' });
+            return res.status(400).json({ error: 'Неверный формат даты' });
         }
 
-        const orders = await Order.findAll({
+        const reservations = await Reservation.findAll({
             include: [{
-                model: Product,
-                as: 'products',
+                model: Good,
+                as: 'goods',
             }],
             where: {
                 date: {
@@ -304,15 +285,15 @@ app.delete('/api/day', async (req, res) => {
                 },
             },
         });
-        console.log(orders)
+        console.log(reservations)
 
         const items = await Item.findAll();
 
-        for (const order of orders) {
-            for (const product of order.products) {
-                await minusItem(product.itemId, product.number);
+        for (const reservation of reservations) {
+            for (const good of reservation.goods) {
+                await minusItem(good.itemId, good.number);
             }
-            await order.destroy();
+            await reservation.destroy();
         }
 
         for (const item of items) {
@@ -322,7 +303,7 @@ app.delete('/api/day', async (req, res) => {
         res.json({ message: 'День переведён' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка удаления заказов' });
+        res.status(500).json({ error: 'Ошибка перевода дня' });
     }
 });
 

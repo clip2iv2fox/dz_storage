@@ -11,7 +11,7 @@ const DateInput = ({ placeholder, input, min = null }) => {
 
     return (
         <input
-            type="datetime-local"
+            type="date"
             id="dateTimeInput"
             value={selectedDate}
             onChange={handleDateChange}

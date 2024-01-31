@@ -9,31 +9,31 @@ import NumInput from './components/input/numInput';
 import Platform from './components/platform/platform';
 import Select from './components/select/select';
 import { getItemsApi, createItemApi } from './configs/itemApi';
-import { createOrderApi, deleteOrderApi, getOrdersApi, updateOrderApi, deleteDayApi } from './configs/orderApi';
-import { createProductApi, deleteProductApi, updateProductApi } from './configs/productApi';
+import { createReservationApi, deleteReservationApi, getReservationsApi, updateReservationApi, deleteDayApi } from './configs/reservationApi';
+import { createGoodApi, deleteGoodApi, updateGoodApi } from './configs/goodApi';
 import DateInput from './components/input/dataInput';
 
 function App() {
   const [items, setItems] = useState([]);
-  const [orders, setOrders] = useState([]);
+  const [reservations, setReservations] = useState([]);
   const [notification, setNotification] = useState("");
   const [isOpen, setOpen] = useState(false);
   const [isCase, setCase] = useState("");
   const [id, setID] = useState("")
   const [itemData, setItemData] = useState({ name: "", number: ""});
-  const [orderData, setOrderData] = useState({ firstName: "", secondName: "", fatherName: "", date: ""});
-  const [productData, setProductData] = useState({name: "", number: "", orderId: "", itemId: ""})
+  const [reservationData, setReservationData] = useState({ firstName: "", secondName: "", fatherName: "", date: ""});
+  const [goodData, setGoodData] = useState({name: "", number: "", reservationId: "", itemId: ""})
   const [day, setDay] = useState(0)
-  const [today, setToday] = useState(new Date().toISOString().slice(0, 16))
+  const [today, setToday] = useState(new Date().toISOString().slice(0, 10))
 
   useEffect(() => {
     getItems();
-    getOrders();
+    getReservations();
     if (!isOpen) {
       setNotification("")
       setItemData({ name: "", number: ""})
-      setOrderData({ firstName: "", secondName: "", fatherName: "", date: ""})
-      setProductData({name: "", number: "", orderId: "", itemId: ""})
+      setReservationData({ firstName: "", secondName: "", fatherName: "", date: ""})
+      setGoodData({name: "", number: "", reservationId: "", itemId: ""})
       setID("")
     }
   }, [isOpen]);
@@ -44,21 +44,22 @@ function App() {
   
       const newDate = new Date();
       newDate.setDate(newDate.getDate() + day);
-      const newToday = newDate.toISOString().slice(0, 16);
+      const newToday = newDate.toISOString().slice(0, 10);
+      console.log(newToday)
       setToday(newToday);
   
       await deleteDayApi(newToday);
       getItems();
-      getOrders();
+      getReservations();
     } catch (error) {
       console.error('Ошибка:' + error);
     }
   };
 
-  const getOrders = async () => {
+  const getReservations = async () => {
     try {
-      const response = await getOrdersApi();
-      setOrders(response);
+      const response = await getReservationsApi();
+      setReservations(response);
     } catch (error) {
       console.error('Ошибка:' + error);
     }
@@ -89,20 +90,20 @@ function App() {
     }
   };
 
-  const createOrders = async () => {
-    if (orderData.firstName === "" || orderData.secondName === "" || orderData.fatherName === "" || orderData.date === "") {
+  const createReservations = async () => {
+    if (reservationData.firstName === "" || reservationData.secondName === "" || reservationData.fatherName === "" || reservationData.date === "") {
       setNotification("Введены не все данные.");
     } else {
       try {
-        const response = await createOrderApi({
-          firstName: orderData.firstName,
-          secondName: orderData.secondName,
-          fatherName: orderData.fatherName,
-          date: orderData.date,
+        const response = await createReservationApi({
+          firstName: reservationData.firstName,
+          secondName: reservationData.secondName,
+          fatherName: reservationData.fatherName,
+          date: reservationData.date,
         });
-        setOrders(response);
+        setReservations(response);
 
-        setOrderData({ firstName: "", secondName: "", fatherName: "", date: ""})
+        setReservationData({ firstName: "", secondName: "", fatherName: "", date: ""})
         setOpen(false);
       } catch (error) {
         handleError(error);
@@ -110,20 +111,20 @@ function App() {
     }
   }
 
-  const redactOrder = async () => {
-    if (orderData.firstName === "" || orderData.secondName === "" || orderData.fatherName === "" || orderData.date === "") {
+  const redactReservation = async () => {
+    if (reservationData.firstName === "" || reservationData.secondName === "" || reservationData.fatherName === "" || reservationData.date === "") {
       setNotification("Не введены изменения.");
     } else {
       try {
-        const response = await updateOrderApi(id, {
-          firstName: orderData.firstName,
-          secondName: orderData.secondName,
-          fatherName: orderData.fatherName,
-          date: orderData.date,
+        const response = await updateReservationApi(id, {
+          firstName: reservationData.firstName,
+          secondName: reservationData.secondName,
+          fatherName: reservationData.fatherName,
+          date: reservationData.date,
         });
-        setOrders(response);
+        setReservations(response);
 
-        setOrderData({ firstName: "", secondName: "", fatherName: "", date: ""})
+        setReservationData({ firstName: "", secondName: "", fatherName: "", date: ""})
         setID("")
         setOpen(false);
       } catch (error) {
@@ -132,10 +133,10 @@ function App() {
     }
   }
 
-  const deleteOrder = async () => {
+  const deleteReservation = async () => {
     try {
-      const response = await deleteOrderApi(id);
-      setOrders(response);
+      const response = await deleteReservationApi(id);
+      setReservations(response);
       setOpen(false);
       setID("")
       setNotification("");
@@ -144,19 +145,19 @@ function App() {
     }
   }
 
-  const createProduct = async () => {
-    if (productData.name === "" || productData.number === "") {
-      console.log(productData)
+  const createGood = async () => {
+    if (goodData.name === "" || goodData.number === "") {
+      console.log(goodData)
       setNotification("Введены не все данные.");
     } else {
       try {
-        await createProductApi(id, {
-          name: productData.name,
-          number: productData.number, 
-          itemId: productData.itemId,
+        await createGoodApi(id, {
+          name: goodData.name,
+          number: goodData.number, 
+          itemId: goodData.itemId,
         });
         setOpen(false);
-        setProductData({name: "", description: "", difficulty: "", time: "", orderId: ""})
+        setGoodData({name: "", description: "", difficulty: "", time: "", reservationId: ""})
         setNotification("");
       } catch (error) {
         handleError(error);
@@ -164,18 +165,18 @@ function App() {
     }
   };
 
-  const redactProduct = async () => {
-      if (productData.name === "" || productData.number === "" || productData.orderId === "") {
+  const redactGood = async () => {
+      if (goodData.name === "" || goodData.number === "" || goodData.reservationId === "") {
         setNotification("Введены не все данные.");
       } else {
         try {
-          await updateProductApi(id, {
-            name: productData.name,
-            number: productData.number,
-            orderId: productData.orderId,
+          await updateGoodApi(id, {
+            name: goodData.name,
+            number: goodData.number,
+            reservationId: goodData.reservationId,
           });
           setOpen(false);
-          setProductData({name: "", number: "", orderId: "", itemId: ""})
+          setGoodData({name: "", number: "", reservationId: "", itemId: ""})
           setNotification("");
         } catch (error) {
           handleError(error);
@@ -183,11 +184,11 @@ function App() {
       }
   };
 
-  const deleteProduct = async () => {
+  const deleteGood = async () => {
     try {
-      await deleteProductApi(id);
+      await deleteGoodApi(id);
       setOpen(false);
-      getOrders();
+      getReservations();
       setNotification("");
     } catch (error) {
       handleError(error);
@@ -226,23 +227,23 @@ function App() {
           <div>
             <div className="platform-bottom">
               <div>
-                Имя: <Input input={(value) => setOrderData({ ...orderData, firstName: value })} placeholder={"введите название..."}/>
+                Имя: <Input input={(value) => setReservationData({ ...reservationData, firstName: value })} placeholder={"введите название..."}/>
               </div>
               <div>
-                Фамилия: <Input input={(value) => setOrderData({ ...orderData, secondName: value })} placeholder={"введите название..."}/>
+                Фамилия: <Input input={(value) => setReservationData({ ...reservationData, secondName: value })} placeholder={"введите название..."}/>
               </div>
               <div>
-                Отчество: <Input input={(value) => setOrderData({ ...orderData, fatherName: value })} placeholder={"введите название..."}/>
+                Отчество: <Input input={(value) => setReservationData({ ...reservationData, fatherName: value })} placeholder={"введите название..."}/>
               </div>
             </div>
             <div className="platform-bottom">
               <div>
-                Дата отправки: <DateInput input={(value) => setOrderData({ ...orderData, date: value })}/>
+                Дата отправки: <DateInput input={(value) => setReservationData({ ...reservationData, date: value })} min={today}/>
               </div>
             </div>
             <div className="platform-bottom">
               <div className='notification'>{notification}</div>
-              <Button onClick={() => createOrders()}>подтвердить</Button>
+              <Button onClick={() => createReservations()}>подтвердить</Button>
             </div>
           </div>
         );
@@ -251,23 +252,23 @@ function App() {
           <div>
             <div className="platform-bottom">
               <div>
-                Имя: <Input input={(value) => setOrderData({ ...orderData, firstName: value })} placeholder={orderData.firstName}/>
+                Имя: <Input input={(value) => setReservationData({ ...reservationData, firstName: value })} placeholder={reservationData.firstName}/>
               </div>
               <div>
-                Фамилия: <Input input={(value) => setOrderData({ ...orderData, secondName: value })} placeholder={orderData.secondName}/>
+                Фамилия: <Input input={(value) => setReservationData({ ...reservationData, secondName: value })} placeholder={reservationData.secondName}/>
               </div>
               <div>
-                Отчество: <Input input={(value) => setOrderData({ ...orderData, fatherName: value })} placeholder={orderData.fatherName}/>
+                Отчество: <Input input={(value) => setReservationData({ ...reservationData, fatherName: value })} placeholder={reservationData.fatherName}/>
               </div>
             </div>
             <div className="platform-bottom">
               <div>
-                Дата отправки: <DateInput input={(value) => setOrderData({ ...orderData, date: value })}/>
+                Дата отправки: <DateInput input={(value) => setReservationData({ ...reservationData, date: value })} min={today}/>
               </div>
             </div>
             <div className="platform-bottom">
               <div className='notification'>{notification}</div>
-              <Button onClick={() => redactOrder()}>подтвердить</Button>
+              <Button onClick={() => redactReservation()}>подтвердить</Button>
             </div>
           </div>
         );
@@ -280,7 +281,7 @@ function App() {
                 <div className="platform-bottom">
                     <Button onClick={() => setOpen(false)}>отмена</Button>
                     <div className='notification'>{notification}</div>
-                    <Button onClick={() => deleteOrder()} type={"danger"}>удалить</Button>
+                    <Button onClick={() => deleteReservation()} type={"danger"}>удалить</Button>
                 </div>
             </div>
           );
@@ -289,15 +290,15 @@ function App() {
             <div>
               <div className="platform-bottom">
                 <div>
-                  продукт <Select onSelect={(value) => setProductData({ ...productData, name: value.name, itemId: value.id })} options={items}/>
+                  продукт <Select onSelect={(value) => setGoodData({ ...goodData, name: value.name, itemId: value.id })} options={items}/>
                 </div>
                 <div>
-                  количество <NumInput input={(value) => setProductData({ ...productData, number: value })} min={1} placeholder={"введите количество..."}/>
+                  количество <NumInput input={(value) => setGoodData({ ...goodData, number: value })} min={1} placeholder={"введите количество..."}/>
                 </div>
               </div>
               <div className="platform-bottom">
                 <div className='notification'>{notification}</div>
-                <Button onClick={() => createProduct()}>подтвердить</Button>
+                <Button onClick={() => createGood()}>подтвердить</Button>
               </div>
             </div>
           );
@@ -306,15 +307,15 @@ function App() {
               <div>
                 <div className="platform-bottom">
                   <div>
-                    заказ <Select onSelect={(value) => setProductData({ ...productData, orderId: value.id })} options={transformJsonArray(orders)}/>
+                    заказ <Select onSelect={(value) => setGoodData({ ...goodData, reservationId: value.id })} options={transformJsonArray(reservations)}/>
                   </div>
                   <div>
-                    количество <NumInput input={(value) => setProductData({ ...productData, number: value })} min={1} placeholder={productData.number}/>
+                    количество <NumInput input={(value) => setGoodData({ ...goodData, number: value })} min={1} placeholder={goodData.number}/>
                   </div>
                 </div>
                 <div className="platform-bottom">
                   <div className='notification'>{notification}</div>
-                  <Button onClick={() => redactProduct()}>подтвердить</Button>
+                  <Button onClick={() => redactGood()}>подтвердить</Button>
                 </div>
               </div>
             );
@@ -327,24 +328,13 @@ function App() {
                   <div className="platform-bottom">
                       <Button onClick={() => setOpen(false)}>отмена</Button>
                       <div className='notification'>{notification}</div>
-                      <Button onClick={() => deleteProduct()} type={"danger"}>удалить</Button>
+                      <Button onClick={() => deleteGood()} type={"danger"}>удалить</Button>
                   </div>
               </div>
             );
       default:
         return (<div>данного модального окна не существует</div>);
     }
-  };
-
-  const formatDate = (inputDate) => {
-    const date = new Date(inputDate);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-  
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   const transformJsonArray = (jsonArray) => {
@@ -376,7 +366,7 @@ function App() {
   return (
     <div className="App">
       <Header 
-        name='STORAGE'
+        name='АДМИН.СКЛАД'
         middle={
           <div>
             {formatDateTime(today)}
@@ -396,17 +386,17 @@ function App() {
           <Button onClick={() => (setOpen(true), setCase("Добавление товара"))}>+ товар</Button>
         </div>
         <div className='main'>
-          {orders.map((order) =>
+          {reservations.map((reservation) =>
             <Accordion
-              key={order.id}
+              key={reservation.id}
               header={
                 <div className='accordion-right'>
                   <div className='accordion-title'>
-                    {order.firstName + " " + order.secondName + " " + order.fatherName}
+                    {reservation.firstName + " " + reservation.secondName + " " + reservation.fatherName}
                   </div>
-                  <div className="accordion-id">{"ID: " + truncateString(order.id)}</div>
+                  <div className="accordion-id">{"ID: " + truncateString(reservation.id)}</div>
                   <div className='accordion-infos'>
-                    <div className='accordion-info'><div className="accordion-id">время отправки:</div> {formatDateTime(order.date)}</div>
+                    <div className='accordion-info'><div className="accordion-id">время отправки:</div> {formatDateTime(reservation.date)}</div>
                   </div>
                 </div>
               }
@@ -416,27 +406,27 @@ function App() {
                     <Button onClick={() => (
                       setOpen(true),
                       setCase("Редактирование заказа"),
-                      setOrderData({ ...orderData, 
-                        firstName: order.firstName,
-                        secondName: order.secondName,
-                        fatherName: order.fatherName,
-                        date: order.date
+                      setReservationData({ ...reservationData, 
+                        firstName: reservation.firstName,
+                        secondName: reservation.secondName,
+                        fatherName: reservation.fatherName,
+                        date: reservation.date
                       }),
-                      setID(order.id)
+                      setID(reservation.id)
                     )} type={"default"}>
                       редактировать заказ
                     </Button>
                     <Button onClick={() => (
                       setOpen(true),
                       setCase("Создание позиции в заказе"),
-                      setProductData({ ...productData, orderId: order.id }),
-                      setID(order.id)
+                      setGoodData({ ...goodData, reservationId: reservation.id }),
+                      setID(reservation.id)
                     )}>+ позиция в заказе</Button>
                   </div>
                   <Button onClick={() => (
                     setOpen(true),
                     setCase("Удаление заказа"),
-                    setID(order.id)
+                    setID(reservation.id)
                   )} type={"danger"}>
                     <i className="fa fa-remove"></i>
                   </Button>
@@ -445,7 +435,7 @@ function App() {
             >
               <div className='accordion-body'>
                 {
-                  !order || !order.products || order.products.length === 0 ? (
+                  !reservation || !reservation.goods || reservation.goods.length === 0 ? (
                     <div className='no-accordions'>ПОЗИЦИЙ НЕТ</div>
                   ) : (
                     <table className='accordion-table'>
@@ -458,21 +448,21 @@ function App() {
                         </tr>
                       </thead>
                       <tbody>
-                        {order.products.map((product) => (
-                          <tr key={product.id}>
-                            <td><div className="accordion-id">{truncateString(product.id)}</div></td>
-                            <td>{product.name}</td>
-                            <td>{product.number}</td>
+                        {reservation.goods.map((good) => (
+                          <tr key={good.id}>
+                            <td><div className="accordion-id">{truncateString(good.id)}</div></td>
+                            <td>{good.name}</td>
+                            <td>{good.number}</td>
                             <td className='buttons'>
                               <Button onClick={() => (
                                 setOpen(true),
                                 setCase("Редактирование позиции"),
-                                setID(product.id),
-                                setProductData({ ...productData, 
-                                  name: product.name,
-                                  number: product.number,
-                                  orderId: product.orderId,
-                                  itemId: product.itemId
+                                setID(good.id),
+                                setGoodData({ ...goodData, 
+                                  name: good.name,
+                                  number: good.number,
+                                  reservationId: good.reservationId,
+                                  itemId: good.itemId
                                 })
                               )}>
                                 <i className="fa fa-edit"></i>
@@ -480,7 +470,7 @@ function App() {
                               <Button onClick={() => (
                                 setOpen(true),
                                 setCase("Удаление позиции"),
-                                setID(product.id)
+                                setID(good.id)
                               )} type={"danger"}>
                                 <i className="fa fa-remove"></i>
                               </Button>
@@ -498,7 +488,7 @@ function App() {
             <Button onClick={() => (
               setOpen(true),
               setCase("Создать заказ"),
-              setOrderData({ firstName: "", secondName: "", fatherName: "", date: ""})
+              setReservationData({ firstName: "", secondName: "", fatherName: "", date: ""})
             )} type={"danger"}>+ заказ</Button>
           </div>
         </div>

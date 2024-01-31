@@ -6,9 +6,9 @@ const api = axios.create({
     baseURL,
 });
 
-export const deleteProductApi = async (id) => {
+export const deleteGoodApi = async (id) => {
     try {
-        const response = await api.delete(`/api/product/${id}`);
+        const response = await api.delete(`/api/good/${id}`);
         return response.data;
     } catch (error) {
         console.error('Ошибка:' + error);
@@ -16,9 +16,9 @@ export const deleteProductApi = async (id) => {
     }
 };
 
-export const createProductApi = async (id, productData) => {
+export const createGoodApi = async (id, goodData) => {
     try {
-        const response = await api.post(`/api/product/${id}`, productData);
+        const response = await api.post(`/api/good/${id}`, goodData);
         return response.data;
     } catch (error) {
         console.error('Ошибка:' + error);
@@ -26,9 +26,9 @@ export const createProductApi = async (id, productData) => {
     }
 };
 
-export const updateProductApi = async (id, productData) => {
+export const updateGoodApi = async (id, goodData) => {
     try {
-        const response = await api.put(`/api/product/${id}`, productData);
+        const response = await api.put(`/api/good/${id}`, goodData);
         return response.data;
     } catch (error) {
         console.error('Ошибка:' + error);

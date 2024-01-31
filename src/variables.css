@@ -1,18 +1,18 @@
 :root {
-  --primary: #ff5638;
-  --secondary: #506dff;
-  --accent: #ff8a8a;
+  --primary: #5770FA;
+  --secondary: #58FA7C;
+  --accent: #FA576B;
   --background: #ffffff;
-  --text: #ffffff;
+  --text: #2D1E3D;
   --border: #1d3557;
   --grey: #cccccc;
 }
 
 .dark-theme{
-  --primary: #a01800;
-  --secondary: #001ba5;
-  --accent: #ff0000;
-  --background: #1D2B53;
+  --primary: #5770FA;
+  --secondary: #58FA7C;
+  --accent: #FA576B;
+  --background: #000922;
   --text: #ffffff;
   --border: #ffffff;
   --grey: #cecece;
